@@ -8,7 +8,7 @@ const SERVICE_CODES = {
   Telegram: 'tg',
   Facebook: 'fb',
   Instagram: 'ig',
-  TikTok: 'tt',
+  TikTok: 'lf',
   Snapchat: 'ot',
 };
 

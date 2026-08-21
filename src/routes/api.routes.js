@@ -223,15 +223,13 @@ router.get('/numbers', ensureAuthenticated, async (req, res) => {
   res.json(numbers);
 });
 
-router.get('/numbers/:id/status', ensureAuthenticated, async (req, res) => {
+async function getActiveNumberCode(req) {
   const activeNumber = await ActiveNumber.findOne({
     _id: req.params.id,
     user_id: req.session.user.id,
   });
 
-  if (!activeNumber) {
-    return res.status(404).json({ message: 'Number not found.' });
-  }
+  if (!activeNumber) return null;
 
   const codeState = await getCode(activeNumber.activation_id);
   if (codeState.status === 'received' && !activeNumber.received_codes.some(item => item.verificationText === codeState.verificationText)) {
@@ -244,15 +242,44 @@ router.get('/numbers/:id/status', ensureAuthenticated, async (req, res) => {
     await activeNumber.save();
   }
 
-  return res.json({
-    activation_id: activeNumber.activation_id,
-    status: activeNumber.status,
-    smsStatus: codeState.status,
-    revealed: activeNumber.revealed,
-    masked_phone_number: activeNumber.masked_phone_number,
-    phone_number: activeNumber.phone_number,
-    received_codes: activeNumber.received_codes,
-  });
+  return { activeNumber, codeState };
+}
+
+router.get('/numbers/:id/status', ensureAuthenticated, async (req, res) => {
+  try {
+    const result = await getActiveNumberCode(req);
+    if (!result) return res.status(404).json({ error: 'Number not found.' });
+
+    const { activeNumber, codeState } = result;
+    return res.json({
+      activation_id: activeNumber.activation_id,
+      status: activeNumber.status,
+      smsStatus: codeState.status,
+      revealed: activeNumber.revealed,
+      masked_phone_number: activeNumber.masked_phone_number,
+      phone_number: activeNumber.phone_number,
+      received_codes: activeNumber.received_codes,
+    });
+  } catch (error) {
+    return res.status(502).json({ error: 'Unable to check for a verification code right now.' });
+  }
+});
+
+router.post('/numbers/:id/request-code', ensureAuthenticated, async (req, res) => {
+  try {
+    const result = await getActiveNumberCode(req);
+    if (!result) return res.status(404).json({ error: 'Number not found.' });
+
+    const { activeNumber, codeState } = result;
+    return res.json({
+      activation_id: activeNumber.activation_id,
+      status: activeNumber.status,
+      smsStatus: codeState.status,
+      received_codes: activeNumber.received_codes,
+    });
+  } catch (error) {
+    return res.status(502).json({ error: 'Unable to request a verification code right now.' });
+  }
 });
 
 router.post('/numbers/:id/reveal', ensureAuthenticated, async (req, res) => {

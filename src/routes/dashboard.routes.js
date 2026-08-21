@@ -89,7 +89,7 @@ async function renderDashboard(req, res, page = 'services') {
     const opaySettings = await getOpaySettings();
     const supportMessages = await SupportMessage.find({ user_id: req.session.user.id }).sort({ createdAt: -1 }).lean();
     const transactions = req.session && req.session.user && isValidObjectId(req.session.user.id)
-      ? await Transaction.find({ user_id: req.session.user.id }).sort({ timestamp: -1 }).limit(10).lean()
+      ? await Transaction.find({ user_id: req.session.user.id }).sort({ timestamp: -1 }).lean()
       : [];
 
     res.render('dashboard', {

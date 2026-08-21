@@ -238,7 +238,13 @@ document.addEventListener('DOMContentLoaded', () => {
         })
       });
 
-      const payload = await response.json();
+      const responseText = await response.text();
+      let payload;
+      try {
+        payload = JSON.parse(responseText);
+      } catch (error) {
+        throw new Error(`Server returned non-JSON response: ${responseText || 'Empty response'}`);
+      }
       if (!response.ok) {
         throw new Error(payload.message || 'Purchase failure.');
       }
@@ -248,12 +254,36 @@ document.addEventListener('DOMContentLoaded', () => {
       paymentPendingState?.classList.remove('hidden');
       showNotice('Payment submitted and pending admin approval.');
     } catch (error) {
-      window.alert(error.message);
+      const message = error instanceof Error ? error.message : String(error || 'Purchase failure.');
+      window.alert(message);
     }
   });
 
   document.querySelectorAll('.copy-number-btn').forEach((button) => {
     button.addEventListener('click', () => copyText(button.dataset.phone, 'Assigned number copied to clipboard.'));
+  });
+
+  document.querySelectorAll('.request-code-btn').forEach((button) => {
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/numbers/${button.dataset.numberId}/request-code`, { method: 'POST' });
+        const text = await response.text();
+        let payload;
+        try {
+          payload = JSON.parse(text);
+        } catch (error) {
+          throw new Error(`Server returned non-JSON response: ${text || 'Empty response'}`);
+        }
+        if (!response.ok) throw new Error(payload.error || payload.message || 'Unable to request a verification code.');
+        showNotice(payload.smsStatus === 'received' ? 'Verification code received.' : 'Checking for a new verification code.');
+        window.setTimeout(() => window.location.reload(), 500);
+      } catch (error) {
+        showNotice(error instanceof Error ? error.message : String(error || 'Unable to request a verification code.'), 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
   });
 
   document.getElementById('copyOpayAccount')?.addEventListener('click', () => {
