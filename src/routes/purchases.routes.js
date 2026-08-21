@@ -61,6 +61,7 @@ router.post('/checkout', ensureAuthenticated, async (req, res) => {
       }
     } catch (error) {
       console.error('TWILIO LIVE ERROR:', error);
+      console.error('TWILIO_CRITICAL_FAIL:', error);
     }
 
     return res.status(201).json({

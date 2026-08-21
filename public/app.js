@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const serviceSearch = document.getElementById('serviceSearch');
   const serviceOptions = document.getElementById('serviceOptions');
+  const serviceRows = serviceOptions?.querySelectorAll('.service-option') || [];
+  const serviceEmptyState = document.getElementById('serviceEmptyState');
   const selectedServiceLabel = document.getElementById('selectedServiceLabel');
   const countryRegionPanel = document.getElementById('countryRegionPanel');
   const menuToggle = document.getElementById('menuToggle');
@@ -98,18 +100,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const selectService = (row) => {
+    serviceRows.forEach((serviceRow) => serviceRow.classList.remove('bg-emerald-50', 'text-emerald-700'));
+    row.classList.add('bg-emerald-50', 'text-emerald-700');
+    serviceSearch.value = row.dataset.serviceName;
+    serviceInput.value = row.dataset.serviceId;
+    if (selectedServiceLabel) selectedServiceLabel.textContent = row.dataset.serviceName;
+    countryRegionPanel?.classList.remove('hidden');
+    countryRegionPanel?.scrollIntoView({ behavior: 'smooth' });
+    orderBtn?.removeAttribute('disabled');
+    if (!selectedCountry && countrySelect) {
+      setCountryState(countrySelect.value);
+    }
+  };
+
+  serviceRows.forEach((row) => row.addEventListener('click', () => selectService(row)));
   serviceSearch?.addEventListener('input', () => {
-    const selectedOption = Array.from(serviceOptions?.options || []).find((option) => option.value.toLowerCase() === serviceSearch.value.trim().toLowerCase());
-    serviceInput.value = selectedOption?.dataset.serviceId || '';
-    if (selectedServiceLabel) selectedServiceLabel.textContent = selectedOption?.value || 'Select a service first';
-    if (selectedOption) {
-      countryRegionPanel?.classList.remove('hidden');
-      countryRegionPanel?.scrollIntoView({ behavior: 'smooth' });
-      orderBtn?.removeAttribute('disabled');
-      if (!selectedCountry && countrySelect) {
-        setCountryState(countrySelect.value);
-      }
-    } else {
+    const searchTerm = serviceSearch.value.trim().toLowerCase();
+    let visibleCount = 0;
+    serviceRows.forEach((row) => {
+      const isVisible = row.dataset.serviceName.toLowerCase().includes(searchTerm);
+      row.classList.toggle('hidden', !isVisible);
+      if (isVisible) visibleCount += 1;
+    });
+    serviceEmptyState?.classList.toggle('hidden', visibleCount > 0);
+    const exactMatch = Array.from(serviceRows).find((row) => row.dataset.serviceName.toLowerCase() === searchTerm);
+    if (exactMatch) {
+      selectService(exactMatch);
+    } else if (!searchTerm) {
+      serviceInput.value = '';
+      if (selectedServiceLabel) selectedServiceLabel.textContent = 'Select a service first';
       orderBtn?.setAttribute('disabled', 'disabled');
     }
   });

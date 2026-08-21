@@ -28,6 +28,7 @@
       body { background: #f8fafc; color: #0f172a; }
       .bottom-nav { box-shadow: 0 -14px 24px rgba(15, 23, 42, 0.06); }
       .service-card img { width: 36px; height: 36px; object-fit: cover; border-radius: 12px; }
+      .service-results { max-height: 22rem; overflow-y: auto; }
       .menu-panel { transform: translateX(-100%); transition: transform 0.25s ease; }
       .menu-panel.open { transform: translateX(0); }
     </style>
@@ -83,12 +84,16 @@
             </div>
             <div>
               <label for="serviceSearch" class="mb-2 block text-sm font-medium text-slate-700">Search services</label>
-              <input id="serviceSearch" list="serviceOptions" type="search" autocomplete="off" placeholder="Type Telegram or WhatsApp" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500" />
-              <datalist id="serviceOptions">
+              <input id="serviceSearch" type="search" autocomplete="off" placeholder="Search services, e.g. Telegram or WhatsApp" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500" />
+              <div id="serviceOptions" class="service-results mt-3 divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
                 <% services.forEach((service) => { %>
-                  <option value="<%= service.name || service.service || service.service_name || service.title || service.label %>" data-service-id="<%= service.ID || service.id || service.service_id || service.code %>"></option>
+                  <button type="button" class="service-option flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-emerald-50" data-service-id="<%= service.ID || service.id || service.service_id || service.code %>" data-service-name="<%= service.name || service.service || service.service_name || service.title || service.label %>">
+                    <span class="font-medium"><%= service.name || service.service || service.service_name || service.title || service.label %></span>
+                    <span class="text-xs text-slate-400">Select</span>
+                  </button>
                 <% }); %>
-              </datalist>
+                <p id="serviceEmptyState" class="hidden px-4 py-6 text-center text-sm text-slate-500">No matching services.</p>
+              </div>
             </div>
           </section>
 
