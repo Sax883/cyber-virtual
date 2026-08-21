@@ -115,6 +115,11 @@ async function getStatus(activationId) {
   return response;
 }
 
+async function releaseNumber(activationId) {
+  const response = await requestSmsApi('setStatus', { id: activationId, status: '8' });
+  return typeof response === 'string' && response.startsWith('ACCESS_CANCEL');
+}
+
 async function getCode(activationId) {
   const response = await requestSmsApi('getStatus', { id: activationId });
   const text = typeof response === 'string' ? response : '';
@@ -141,6 +146,7 @@ module.exports = {
   getServiceAvailability,
   getPriceForService,
   buyNumber,
+  releaseNumber,
   getStatus,
   getCode,
   SMS_API_KEY,

@@ -4,7 +4,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID || '';
 const apiKey = process.env.TWILIO_API_KEY || '';
 const apiSecret = process.env.TWILIO_API_SECRET || '';
 const fromNumber = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886';
-const toNumber = process.env.TWILIO_WHATSAPP_TO || 'whatsapp:+2349065781267';
+const toNumber = process.env.TWILIO_WHATSAPP_TO || 'whatsapp:+2348023291356';
 
 function getTwilioClient() {
   return twilio(apiKey, apiSecret, { accountSid });
@@ -13,7 +13,7 @@ function getTwilioClient() {
 async function sendCreditPurchaseWhatsAppNotification({ packageName, amount, userEmail, proofReference = '' }) {
   const client = getTwilioClient();
 
-  const message = `New Credit Top-Up Initiated\n\nClient Email: ${userEmail}\nPackage: ${packageName}\nAmount: NGN ${amount}\nReference: ${proofReference || 'Not provided'}\n\nPlease review and approve in the admin dashboard.`;
+  const message = `${String.fromCodePoint(0x1f514)} *New Credit Top-Up Initiated*\n${String.fromCodePoint(0x2022)} Client Email: ${userEmail}\n${String.fromCodePoint(0x2022)} Package: ${packageName}\n${String.fromCodePoint(0x2022)} Amount: NGN ${amount}\n${String.fromCodePoint(0x2022)} Payment Reference: ${proofReference || 'Not provided'}\n\nPlease review and approve in the admin dashboard.`;
 
   try {
     const response = await client.messages.create({

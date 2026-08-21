@@ -263,6 +263,29 @@ document.addEventListener('DOMContentLoaded', () => {
     button.addEventListener('click', () => copyText(button.dataset.phone, 'Assigned number copied to clipboard.'));
   });
 
+  document.querySelectorAll('.delete-number-btn').forEach((button) => {
+    button.addEventListener('click', async () => {
+      if (!window.confirm('Cancel this number session?')) return;
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/numbers/${button.dataset.numberId}`, { method: 'DELETE' });
+        const responseText = await response.text();
+        let payload;
+        try {
+          payload = JSON.parse(responseText);
+        } catch (error) {
+          throw new Error(`Server returned non-JSON response: ${responseText || 'Empty response'}`);
+        }
+        if (!response.ok) throw new Error(payload.error || payload.message || 'Unable to cancel number.');
+        button.closest('[data-number-id]')?.remove();
+        showNotice(payload.message || 'Number session cancelled.');
+      } catch (error) {
+        showNotice(error instanceof Error ? error.message : String(error || 'Unable to cancel number.'), 'error');
+        button.disabled = false;
+      }
+    });
+  });
+
   document.querySelectorAll('.request-code-btn').forEach((button) => {
     button.addEventListener('click', async () => {
       button.disabled = true;

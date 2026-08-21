@@ -4,7 +4,7 @@ const ActiveNumber = require('../models/ActiveNumber');
 const Transaction = require('../models/Transaction');
 const SupportMessage = require('../models/SupportMessage');
 const { ensureAuthenticated, ensureAdmin } = require('../middleware/auth');
-const { buyNumber, getServiceAvailability, getCode } = require('../services/smsService');
+const { buyNumber, releaseNumber, getServiceAvailability, getCode } = require('../services/smsService');
 const { getOpaySettings, setSetting } = require('../services/settingsService');
 
 const router = express.Router();
@@ -221,6 +221,25 @@ router.post('/order', ensureAuthenticated, requestNumberHandler);
 router.get('/numbers', ensureAuthenticated, async (req, res) => {
   const numbers = await ActiveNumber.find({ user_id: req.session.user.id }).sort({ createdAt: -1 });
   res.json(numbers);
+});
+
+router.delete('/numbers/:id', ensureAuthenticated, async (req, res) => {
+  try {
+    const activeNumber = await ActiveNumber.findOne({
+      _id: req.params.id,
+      user_id: req.session.user.id,
+    });
+
+    if (!activeNumber) return res.status(404).json({ error: 'Number not found.' });
+
+    const released = await releaseNumber(activeNumber.activation_id);
+    if (!released) return res.status(502).json({ error: 'Unable to release number. Please try again.' });
+
+    await ActiveNumber.deleteOne({ _id: activeNumber._id });
+    return res.json({ success: true, message: 'Number session cancelled.' });
+  } catch (error) {
+    return res.status(502).json({ error: 'Unable to release number right now.' });
+  }
 });
 
 async function getActiveNumberCode(req) {
