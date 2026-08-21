@@ -6,6 +6,7 @@ const SupportMessage = require('../models/SupportMessage');
 const { ensureAuthenticated } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/admin');
 const { getOpaySettings } = require('../services/settingsService');
+const { getAdminCredentials } = require('../config/admin');
 
 const router = express.Router();
 
@@ -40,8 +41,9 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const normalizedEmail = String(email || '').trim().toLowerCase();
   const normalizedPassword = String(password || '');
+  const adminCredentials = getAdminCredentials();
 
-  if (normalizedEmail !== 'admin@cybervirtual.ng' || normalizedPassword !== 'Power081') {
+  if (normalizedEmail !== adminCredentials.email || normalizedPassword !== adminCredentials.password) {
     return res.status(401).render('admin', {
       page: 'login',
       user: null,

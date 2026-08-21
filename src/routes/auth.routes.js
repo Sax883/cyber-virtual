@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const { getAdminCredentials } = require('../config/admin');
 
 const router = express.Router();
 
@@ -56,7 +57,8 @@ router.post('/login', async (req, res) => {
     const normalizedEmail = String(email || '').trim().toLowerCase();
     const normalizedPassword = String(password || '');
 
-    if (normalizedEmail === 'admin@cybervirtual.ng' && normalizedPassword === 'Power081') {
+    const adminCredentials = getAdminCredentials();
+    if (normalizedEmail === adminCredentials.email && normalizedPassword === adminCredentials.password) {
       let adminUser = await User.findOne({ email: normalizedEmail });
 
       if (!adminUser) {
