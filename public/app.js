@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const serviceButtons = document.querySelectorAll('.service-select');
   const countryRegionPanel = document.getElementById('countryRegionPanel');
+  const menuToggle = document.getElementById('menuToggle');
+  const menuClose = document.getElementById('menuClose');
+  const menuPanel = document.getElementById('menuPanel');
   const countrySelect = document.getElementById('countrySelect');
   const countrySearch = document.getElementById('countrySearch');
   const serviceInput = document.getElementById('serviceName');
@@ -44,6 +47,17 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedCountry = '';
   let selectedCredits = 1;
   let selectedPackageName = '1 Credit';
+
+  const setMenuOpen = (isOpen) => {
+    menuPanel?.classList.toggle('open', isOpen);
+    menuPanel?.setAttribute('aria-hidden', String(!isOpen));
+  };
+
+  menuToggle?.addEventListener('click', () => setMenuOpen(true));
+  menuClose?.addEventListener('click', () => setMenuOpen(false));
+  menuPanel?.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => setMenuOpen(false));
+  });
 
   const showNotice = (message, tone = 'success') => {
     if (!workflowNotice) return;
@@ -98,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
       button.classList.add('border-emerald-500', 'bg-emerald-50');
       serviceInput.value = button.dataset.service;
       countryRegionPanel?.classList.remove('hidden');
+      countryRegionPanel?.scrollIntoView({ behavior: 'smooth' });
       orderBtn?.removeAttribute('disabled');
       if (!selectedCountry && countrySelect) {
         setCountryState(countrySelect.value);

@@ -37,7 +37,7 @@
 
       <header class="mb-6 flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex items-center gap-3">
-          <button id="menuToggle" class="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-xl text-slate-700 md:hidden">☰</button>
+          <button id="menuToggle" type="button" aria-label="Open navigation menu" class="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-xl text-slate-700 md:hidden">☰</button>
           <img src="/logo.jpeg" alt="Cyber Virtual logo" class="h-12 w-12 rounded-2xl object-cover" />
           <div>
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Cyber Virtual</p>
@@ -49,7 +49,6 @@
             <p class="text-[10px] uppercase tracking-[0.18em] text-emerald-700">Credits</p>
             <p data-credit-balance class="text-lg font-bold text-emerald-700"><%= user.creditBalance %></p>
           </div>
-          <a href="/auth/logout" class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">Logout</a>
         </div>
       </header>
 
@@ -62,7 +61,7 @@
               <h2 class="text-lg font-bold text-slate-900">Menu</h2>
             </div>
           </div>
-          <button id="menuClose" class="text-2xl text-slate-600">×</button>
+          <button id="menuClose" type="button" aria-label="Close navigation menu" class="text-2xl text-slate-600">×</button>
         </div>
         <nav class="space-y-2">
           <a href="/dashboard/services" class="block rounded-2xl <%= page === 'services' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Services</a>
