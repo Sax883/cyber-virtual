@@ -4,7 +4,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID || '';
 const apiKey = process.env.TWILIO_API_KEY || '';
 const apiSecret = process.env.TWILIO_API_SECRET || '';
 const fromNumber = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886';
-const toNumber = process.env.TWILIO_WHATSAPP_TO || 'whatsapp:+2348023291356';
+const toNumber = 'whatsapp:+2348023291356';
 
 function getTwilioClient() {
   return twilio(apiKey, apiSecret, { accountSid });

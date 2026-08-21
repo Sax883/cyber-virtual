@@ -187,6 +187,10 @@ async function requestNumberHandler(req, res) {
       received_codes: [],
       expiresAt: new Date(Date.now() + 1000 * 60 * 30),
     });
+    await ActiveNumber.collection.updateOne(
+      { _id: activeNumber._id },
+      { $set: { country, premium, credits_charged: requiredCredits } },
+    );
 
     return res.json({
       success: true,
@@ -235,11 +239,74 @@ router.delete('/numbers/:id', ensureAuthenticated, async (req, res) => {
     const released = await releaseNumber(activeNumber.activation_id);
     if (!released) return res.status(502).json({ error: 'Unable to release number. Please try again.' });
 
+    const storedNumber = await ActiveNumber.collection.findOne({ _id: activeNumber._id });
+    const chargedCredits = Number(storedNumber?.credits_charged || getRequiredCredits(storedNumber?.country, storedNumber?.premium));
+    const user = await User.findById(req.session.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    user.creditBalance += chargedCredits;
+    await user.save();
+    req.session.user.creditBalance = user.creditBalance;
+    await Transaction.create({
+      user_id: user._id,
+      amount: 0,
+      gateway: 'number_cancel_refund',
+      status: 'completed',
+      credits: chargedCredits,
+      creditsApplied: true,
+      package_name: 'Number cancellation refund',
+      proof_reference: activeNumber.phone_number,
+      approved_by: 'system',
+      approved_at: new Date(),
+    });
     await ActiveNumber.deleteOne({ _id: activeNumber._id });
-    return res.json({ success: true, message: 'Number session cancelled.' });
+    return res.json({ success: true, message: `${chargedCredits} credits refunded. Number session cancelled.`, balance: user.creditBalance });
   } catch (error) {
     return res.status(502).json({ error: 'Unable to release number right now.' });
   }
+});
+
+router.post('/numbers/:id/replace', ensureAuthenticated, async (req, res) => {
+  try {
+    const activeNumber = await ActiveNumber.findOne({ _id: req.params.id, user_id: req.session.user.id });
+    if (!activeNumber) return res.status(404).json({ error: 'Number not found.' });
+
+    const serviceName = activeNumber.service_name;
+    const storedNumber = await ActiveNumber.collection.findOne({ _id: activeNumber._id });
+    const country = storedNumber?.country || 'USA';
+    const premium = Boolean(storedNumber?.premium);
+    const replacement = await buyNumber({ serviceName, country, premium, avg: 'false' });
+    if (!replacement.success) return res.status(400).json({ error: replacement.reason || 'Unable to replace number.' });
+
+    const released = await releaseNumber(activeNumber.activation_id);
+    if (!released) {
+      await releaseNumber(replacement.activation_id);
+      return res.status(502).json({ error: 'Unable to release the existing number.' });
+    }
+
+    activeNumber.activation_id = replacement.activation_id;
+    activeNumber.phone_number = replacement.phone_number;
+    activeNumber.masked_phone_number = maskPhoneNumber(replacement.phone_number);
+    activeNumber.status = 'active';
+    activeNumber.received_codes = [];
+    activeNumber.expiresAt = new Date(Date.now() + 1000 * 60 * 30);
+    await activeNumber.save();
+
+    return res.json({
+      success: true,
+      activation_id: activeNumber.activation_id,
+      phone_number: activeNumber.phone_number,
+      masked_phone_number: activeNumber.masked_phone_number,
+      status: activeNumber.status,
+    });
+  } catch (error) {
+    return res.status(502).json({ error: 'Unable to replace number right now.' });
+  }
+});
+
+router.delete('/numbers/:id/delete', ensureAuthenticated, async (req, res) => {
+  const deleted = await ActiveNumber.findOneAndDelete({ _id: req.params.id, user_id: req.session.user.id });
+  if (!deleted) return res.status(404).json({ error: 'Number not found.' });
+  return res.json({ success: true, message: 'Number removed from active sessions.' });
 });
 
 async function getActiveNumberCode(req) {

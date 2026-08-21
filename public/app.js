@@ -286,6 +286,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  document.querySelectorAll('.replace-number-btn').forEach((button) => {
+    button.addEventListener('click', async () => {
+      if (!window.confirm('Replace this number?')) return;
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/numbers/${button.dataset.numberId}/replace`, { method: 'POST' });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || payload.message || 'Unable to replace number.');
+        const card = button.closest('[data-number-id]');
+        const heading = card?.querySelector('h3');
+        if (heading) heading.textContent = payload.phone_number || payload.masked_phone_number;
+        const copyButton = card?.querySelector('.copy-number-btn');
+        if (copyButton) copyButton.dataset.phone = payload.phone_number;
+        showNotice('Number replaced successfully.');
+      } catch (error) {
+        showNotice(error instanceof Error ? error.message : String(error || 'Unable to replace number.'), 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('.remove-number-btn').forEach((button) => {
+    button.addEventListener('click', async () => {
+      if (!window.confirm('Delete this active number session?')) return;
+      try {
+        const response = await fetch(`/api/numbers/${button.dataset.numberId}/delete`, { method: 'DELETE' });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || payload.message || 'Unable to delete number session.');
+        button.closest('[data-number-id]')?.remove();
+        showNotice(payload.message || 'Number session deleted.');
+      } catch (error) {
+        showNotice(error instanceof Error ? error.message : String(error || 'Unable to delete number session.'), 'error');
+      }
+    });
+  });
+
   document.querySelectorAll('.request-code-btn').forEach((button) => {
     button.addEventListener('click', async () => {
       button.disabled = true;

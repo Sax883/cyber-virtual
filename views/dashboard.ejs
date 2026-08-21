@@ -157,6 +157,8 @@
                   <button type="button" class="copy-number-btn mt-3 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-700" data-phone="<%= number.phone_number %>">Copy number</button>
                   <button type="button" class="request-code-btn mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700" data-number-id="<%= number._id %>">Request code again</button>
                   <button type="button" class="delete-number-btn mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700" data-number-id="<%= number._id %>">Cancel number</button>
+                  <button type="button" class="replace-number-btn mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700" data-number-id="<%= number._id %>">Replace number</button>
+                  <button type="button" class="remove-number-btn mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700" data-number-id="<%= number._id %>">Delete</button>
                   <div class="mt-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
                     <span>Expires in</span>
                     <strong class="countdown text-emerald-700"><%= number.expiresAt ? new Date(number.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A' %></strong>
