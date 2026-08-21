@@ -77,7 +77,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/dashboard', ensureAuthenticated, requireAdmin, async (req, res) => {
-  const users = await User.find({ adminHidden: { $ne: true } }).sort({ createdAt: -1 }).lean();
+  const users = await User.find({ adminHidden: { $ne: true } }).sort({ createdAt: -1 }).limit(2).lean();
   const visibleUserIds = users.map((entry) => entry._id);
   const transactions = await Transaction.find({ user_id: { $in: visibleUserIds } }).populate('user_id', 'email').sort({ user_id: 1, timestamp: -1 }).limit(100).lean();
   const transactionGroups = transactions.reduce((groups, transaction) => {

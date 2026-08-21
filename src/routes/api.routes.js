@@ -245,7 +245,7 @@ router.post('/numbers/:id/reveal', ensureAuthenticated, async (req, res) => {
 });
 
 router.get('/admin/users', ensureAuthenticated, ensureAdmin, async (req, res) => {
-  const users = await User.find({ adminHidden: { $ne: true } }).select('name email preferredRegion role creditBalance createdAt').sort({ createdAt: -1 });
+  const users = await User.find({ adminHidden: { $ne: true } }).select('name email preferredRegion role creditBalance createdAt').sort({ createdAt: -1 }).limit(2);
   res.json(users);
 });
 
