@@ -1,13 +1,12 @@
 const twilio = require('twilio');
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID || '';
-const apiKey = process.env.TWILIO_API_KEY || '';
-const apiSecret = process.env.TWILIO_API_SECRET || '';
+const authToken = process.env.TWILIO_AUTH_TOKEN || '';
 const fromNumber = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886';
-const toNumber = 'whatsapp:+2348023291356';
+const toNumber = process.env.TWILIO_WHATSAPP_TO || 'whatsapp:+2348023291356';
 
 function getTwilioClient() {
-  return twilio(apiKey, apiSecret, { accountSid });
+  return twilio(accountSid, authToken);
 }
 
 async function sendCreditPurchaseWhatsAppNotification({ packageName, amount, userEmail, proofReference = '' }) {
@@ -42,8 +41,7 @@ async function sendCreditPurchaseWhatsAppNotification({ packageName, amount, use
 module.exports = {
   sendCreditPurchaseWhatsAppNotification,
   accountSid,
-  apiKey,
-  apiSecret,
+  authToken,
   fromNumber,
   toNumber,
 };

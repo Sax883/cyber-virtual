@@ -56,6 +56,31 @@ function getRequiredCredits(country, premium) {
   return Math.floor(Math.random() * 13) + 3;
 }
 
+async function cancelAndRefundNumber(activeNumber, user, req) {
+  const released = await releaseNumber(activeNumber.activation_id);
+  if (!released) throw new Error('Unable to release the previous number session.');
+
+  const storedNumber = await ActiveNumber.collection.findOne({ _id: activeNumber._id });
+  const refundedCredits = Number(storedNumber?.credits_charged || getRequiredCredits(storedNumber?.country, storedNumber?.premium));
+  user.creditBalance += refundedCredits;
+  await user.save();
+  req.session.user.creditBalance = user.creditBalance;
+  await Transaction.create({
+    user_id: user._id,
+    amount: 0,
+    gateway: 'number_cancel_refund',
+    status: 'completed',
+    credits: refundedCredits,
+    creditsApplied: true,
+    package_name: 'Number cancellation refund',
+    proof_reference: activeNumber.phone_number,
+    approved_by: 'system',
+    approved_at: new Date(),
+  });
+  await ActiveNumber.deleteOne({ _id: activeNumber._id });
+  return refundedCredits;
+}
+
 router.get('/me', ensureAuthenticated, async (req, res) => {
   const user = await User.findById(req.session.user.id).lean();
 
@@ -153,6 +178,15 @@ async function requestNumberHandler(req, res) {
       return res.status(404).json({ error: 'User not found.' });
     }
 
+    const previousSessions = await ActiveNumber.find({
+      user_id: user._id,
+      service_name: serviceName,
+      status: 'active',
+    });
+    for (const previousSession of previousSessions) {
+      await cancelAndRefundNumber(previousSession, user, req);
+    }
+
     const requiredCredits = getRequiredCredits(country, premium);
     if (user.creditBalance < requiredCredits) {
       return res.status(400).json({ error: 'Insufficient balance, please top up credits.', requiredCredits });
@@ -236,30 +270,10 @@ router.delete('/numbers/:id', ensureAuthenticated, async (req, res) => {
 
     if (!activeNumber) return res.status(404).json({ error: 'Number not found.' });
 
-    const released = await releaseNumber(activeNumber.activation_id);
-    if (!released) return res.status(502).json({ error: 'Unable to release number. Please try again.' });
-
-    const storedNumber = await ActiveNumber.collection.findOne({ _id: activeNumber._id });
-    const chargedCredits = Number(storedNumber?.credits_charged || getRequiredCredits(storedNumber?.country, storedNumber?.premium));
     const user = await User.findById(req.session.user.id);
     if (!user) return res.status(404).json({ error: 'User not found.' });
-    user.creditBalance += chargedCredits;
-    await user.save();
-    req.session.user.creditBalance = user.creditBalance;
-    await Transaction.create({
-      user_id: user._id,
-      amount: 0,
-      gateway: 'number_cancel_refund',
-      status: 'completed',
-      credits: chargedCredits,
-      creditsApplied: true,
-      package_name: 'Number cancellation refund',
-      proof_reference: activeNumber.phone_number,
-      approved_by: 'system',
-      approved_at: new Date(),
-    });
-    await ActiveNumber.deleteOne({ _id: activeNumber._id });
-    return res.json({ success: true, message: `${chargedCredits} credits refunded. Number session cancelled.`, balance: user.creditBalance });
+    const refundedCredits = await cancelAndRefundNumber(activeNumber, user, req);
+    return res.json({ success: true, message: `${refundedCredits} credits refunded. Number session cancelled.`, balance: user.creditBalance });
   } catch (error) {
     return res.status(502).json({ error: 'Unable to release number right now.' });
   }
