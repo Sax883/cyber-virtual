@@ -7,7 +7,7 @@ const MongoStore = MongoStoreModule.MongoStore || MongoStoreModule.default || Mo
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-const { connectDB } = require('./config/db');
+const { connectDB, getMongoUri } = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const adminRoutes = require('./routes/admin.routes');
@@ -48,7 +48,7 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 * 7,
   },
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cybervirtual',
+    mongoUrl: getMongoUri(),
     ttl: 60 * 60 * 24 * 7,
   }),
 }));

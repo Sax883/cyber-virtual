@@ -2,6 +2,12 @@ const mongoose = require('mongoose');
 
 let connectionPromise;
 
+function getMongoUri() {
+  const configuredUri = String(process.env.MONGODB_URI || '').trim();
+  const uri = configuredUri.replace(/^MONGODB_URI\s*=\s*/i, '').replace(/^(['"])(.*)\1$/, '$2').trim();
+  return uri;
+}
+
 function connectDB() {
   if (mongoose.connection.readyState === 1) {
     return Promise.resolve(mongoose.connection);
@@ -9,7 +15,7 @@ function connectDB() {
 
   if (connectionPromise) return connectionPromise;
 
-  const uri = process.env.MONGODB_URI;
+  const uri = getMongoUri();
   if (!uri) {
     return Promise.reject(new Error('MONGODB_URI is not configured.'));
   }
@@ -30,4 +36,4 @@ function connectDB() {
   return connectionPromise;
 }
 
-module.exports = { connectDB };
+module.exports = { connectDB, getMongoUri };
