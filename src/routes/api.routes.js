@@ -136,7 +136,14 @@ router.get('/availability/:serviceName', ensureAuthenticated, async (req, res) =
 });
 
 router.post('/order', ensureAuthenticated, async (req, res) => {
-  const { serviceName, country = 'USA', premium = false } = req.body;
+  const serviceName = req.body.serviceName || req.body.service;
+  const country = req.body.country || 'USA';
+  const premium = req.body.premium || false;
+
+  if (!serviceName) {
+    return res.status(400).json({ message: 'Service name is required.' });
+  }
+
   const user = await User.findById(req.session.user.id);
 
   if (!user) {

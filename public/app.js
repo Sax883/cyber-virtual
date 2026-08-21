@@ -149,18 +149,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const response = await fetch('/api/order', {
+      const response = await fetch('/api/request-number', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceName, country, premium })
+        body: JSON.stringify({ service: serviceName, country, premium })
       });
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.message || 'Unable to create order.');
+        throw new Error(payload.error || payload.message || 'Unable to request number.');
       }
 
-      showNotice('Number assigned. Open Active Numbers to copy it and monitor incoming verification codes.');
+      showNotice(`Number assigned: ${payload.phoneNumber}. Open Active Numbers to monitor codes.`);
       window.setTimeout(() => { window.location.href = '/dashboard/numbers'; }, 900);
     } catch (error) {
       showNotice(error.message, 'error');
