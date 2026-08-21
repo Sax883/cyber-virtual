@@ -231,7 +231,17 @@ async function getActiveNumberCode(req) {
 
   if (!activeNumber) return null;
 
-  const codeState = await getCode(activeNumber.activation_id);
+  let codeState = await getCode(activeNumber.activation_id);
+  if (codeState.status !== 'received' && /^STATUS_OK:/i.test(String(codeState.message || ''))) {
+    const verificationText = String(codeState.message).replace(/^STATUS_OK:/i, '').trim();
+    if (verificationText) {
+      codeState = {
+        status: 'received',
+        message: verificationText,
+        verificationText,
+      };
+    }
+  }
   if (codeState.status === 'received' && !activeNumber.received_codes.some(item => item.verificationText === codeState.verificationText)) {
     activeNumber.received_codes.push({
       message: codeState.message,
@@ -255,6 +265,7 @@ router.get('/numbers/:id/status', ensureAuthenticated, async (req, res) => {
       activation_id: activeNumber.activation_id,
       status: activeNumber.status,
       smsStatus: codeState.status,
+      verificationCode: codeState.verificationText || '',
       revealed: activeNumber.revealed,
       masked_phone_number: activeNumber.masked_phone_number,
       phone_number: activeNumber.phone_number,

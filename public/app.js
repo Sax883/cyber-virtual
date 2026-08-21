@@ -427,14 +427,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const updateStatus = async () => {
         try {
           const response = await fetch(`/api/numbers/${numberId}/status`);
-          const payload = await response.json();
-          if (!response.ok) return;
+          const responseText = await response.text();
+          let payload;
+          try {
+            payload = JSON.parse(responseText);
+          } catch (error) {
+            throw new Error(`Server returned non-JSON response: ${responseText || 'Empty response'}`);
+          }
+          if (!response.ok) throw new Error(payload.error || payload.message || 'Unable to check verification status.');
 
           const smsState = card.querySelector('.sms-state');
           if (smsState) {
             smsState.className = 'sms-state rounded-xl border p-3 text-sm';
-            if (payload.received_codes && payload.received_codes.length > 0) {
-              const latest = payload.received_codes[payload.received_codes.length - 1];
+            const latest = payload.received_codes?.length
+              ? payload.received_codes[payload.received_codes.length - 1]
+              : payload.verificationCode
+                ? { verificationText: payload.verificationCode, timestamp: new Date() }
+                : null;
+            if (latest) {
               smsState.classList.add('border-emerald-100', 'bg-white', 'text-slate-700');
               smsState.innerHTML = `
                 <p class="font-semibold text-slate-900">Code received:</p>
