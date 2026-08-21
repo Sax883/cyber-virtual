@@ -155,7 +155,14 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ service: serviceName, country, premium })
       });
 
-      const payload = await response.json();
+      const text = await response.text();
+      let payload;
+      try {
+        payload = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Server returned non-JSON response: ${text || 'Empty response'}`);
+      }
+
       if (!response.ok) {
         throw new Error(payload.error || payload.message || 'Unable to request number.');
       }
