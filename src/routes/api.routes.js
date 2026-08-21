@@ -71,6 +71,14 @@ router.get('/me', ensureAuthenticated, async (req, res) => {
   });
 });
 
+router.get('/me/transactions', ensureAuthenticated, async (req, res) => {
+  const transactions = await Transaction.find({ user_id: req.session.user.id })
+    .sort({ timestamp: -1 })
+    .limit(10)
+    .lean();
+  return res.json(transactions);
+});
+
 router.put('/me/profile', ensureAuthenticated, async (req, res) => {
   const name = String(req.body.name || '').trim();
   const preferredRegion = String(req.body.preferredRegion || '').trim();
@@ -254,7 +262,12 @@ router.delete('/admin/users/:id', ensureAuthenticated, ensureAdmin, async (req, 
     return res.status(400).json({ message: 'The administrator account cannot be hidden.' });
   }
 
-  const user = await User.findByIdAndUpdate(req.params.id, { adminHidden: true }, { new: true });
+  const user = await User.findById(req.params.id);
+  if (user?.email?.toLowerCase() === 'admin@cybervirtual.ng' || user?.role === 'admin') {
+    return res.status(400).json({ message: 'The administrator account cannot be hidden.' });
+  }
+  if (user) user.adminHidden = true;
+  await user?.save();
   if (!user) return res.status(404).json({ message: 'Client not found.' });
   return res.json({ success: true, message: 'Client hidden from the admin dashboard.' });
 });

@@ -282,6 +282,34 @@ document.addEventListener('DOMContentLoaded', () => {
       console.debug('User refresh unavailable');
     }
   };
+
+  const refreshPurchaseHistory = async () => {
+    const history = document.getElementById('purchaseHistory');
+    if (!history) return;
+    try {
+      const response = await fetch('/api/me/transactions', { cache: 'no-store' });
+      if (!response.ok) return;
+      const transactions = await response.json();
+      transactions.forEach((transaction) => {
+        const row = history.querySelector(`[data-transaction-id="${transaction._id}"]`);
+        if (!row) return;
+        const status = row.querySelector('[data-transaction-status]');
+        const credits = row.querySelector('[data-transaction-credits]');
+        if (status) {
+          status.textContent = transaction.status.toUpperCase();
+          status.className = `rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${transaction.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : transaction.status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`;
+        }
+        if (credits) credits.textContent = `${transaction.credits || 0} credits`;
+      });
+    } catch (error) {
+      console.debug('Purchase history refresh unavailable');
+    }
+  };
+
+  if (document.getElementById('purchaseHistory')) {
+    refreshPurchaseHistory();
+    window.setInterval(refreshPurchaseHistory, 5000);
+  }
   if (document.querySelector('[data-credit-balance]')) {
     refreshCurrentUser();
     window.setInterval(refreshCurrentUser, 5000);

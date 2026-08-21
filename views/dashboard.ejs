@@ -210,19 +210,19 @@
                   <h3 class="text-lg font-bold text-slate-900">Purchase history</h3>
                   <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700"><%= transactions.length %> entries</span>
                 </div>
-                <div class="space-y-3">
+                <div id="purchaseHistory" class="space-y-3">
                   <% transactions.forEach((txn) => { %>
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="purchase-history-row rounded-2xl border border-slate-200 bg-slate-50 p-4" data-transaction-id="<%= txn._id %>">
                       <div class="flex items-center justify-between gap-3">
                         <div>
                           <p class="text-sm font-semibold text-slate-900"><%= txn.package_name || 'Credit purchase' %></p>
                           <p class="mt-1 text-xs text-slate-500"><%= new Date(txn.timestamp).toLocaleString() %></p>
                         </div>
-                        <span class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide <%= txn.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : txn.status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700' %>"><%= txn.status.toUpperCase() %></span>
+                        <span data-transaction-status class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide <%= txn.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : txn.status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700' %>"><%= txn.status.toUpperCase() %></span>
                       </div>
                       <div class="mt-3 flex items-center justify-between text-sm text-slate-700">
                         <span>₦<%= Number(txn.amount || 0).toLocaleString() %></span>
-                        <span><%= txn.credits || 0 %> credits</span>
+                        <span data-transaction-credits><%= txn.credits || 0 %> credits</span>
                       </div>
                     </div>
                   <% }); %>
