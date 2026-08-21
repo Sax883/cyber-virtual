@@ -1,54 +1,47 @@
 const axios = require('axios');
 
-const SMS_API_KEY = process.env.SMS_API_KEY || 'sk_C_yMH5p7cTmXFFPhkPSioir8eDxaRAPpLm7IiXdfYzE';
-const BASE_URL = 'https://hero-sms.com/stubs/handler_api.php';
+const SMS_API_KEY = process.env.SMS_API_KEY || '';
+const BASE_URL = 'https://api.smspool.net';
 
 const SERVICE_CODES = {
-  WhatsApp: 'wa',
-  Telegram: 'tg',
-  Facebook: 'fb',
-  Instagram: 'ig',
-  TikTok: 'lf',
-  Snapchat: 'ot',
+  WhatsApp: '1012',
+  Telegram: '907',
+  Facebook: '329',
+  Instagram: '457',
+  TikTok: '924',
+  Snapchat: '846',
 };
 
 const COUNTRY_CODES = {
-  USA: '187', UK: '16', Canada: '36', India: '22', Germany: '43', France: '78', Brazil: '73',
-  Ghana: '60', Kenya: '38', 'South Africa': '31', Australia: '175', Japan: '4', 'South Korea': '51',
-  Italy: '86', Spain: '56', Netherlands: '48', Sweden: '46', Switzerland: '9', Mexico: '52', Argentina: '7',
-  Colombia: '33', Indonesia: '6', Malaysia: '7', Philippines: '4', Vietnam: '10', Singapore: '196', UAE: '2',
-  'Saudi Arabia': '11', Egypt: '21', 'New Zealand': '67', Turkey: '62', Portugal: '117',
-  Norway: '74', Poland: '15',
+  USA: '1', UK: '2', India: '15', Germany: '24', France: '23', Brazil: '68',
+  Ghana: '42', Kenya: '16', 'South Africa': '153', Australia: '159', Japan: '157',
+  Italy: '79', Spain: '55', Netherlands: '3', Sweden: '6', Switzerland: '134', Mexico: '53',
+  Argentina: '43', Colombia: '39', Indonesia: '9', Malaysia: '20', Philippines: '12', Vietnam: '11',
+  Singapore: '141', UAE: '144', 'Saudi Arabia': '35', Egypt: '31', 'New Zealand': '159',
+  Turkey: '60', Portugal: '8', Norway: '135', Poland: '21',
 };
 
 const formatNumber = (value) => Number(value || 0);
 
-async function requestSmsApi(action, params = {}) {
-  const query = new URLSearchParams({
-    api_key: SMS_API_KEY,
-    action,
-    ...params,
+async function requestSmsApi(path, params = {}) {
+  if (!SMS_API_KEY) throw new Error('SMS_API_KEY is not configured.');
+  const body = new URLSearchParams({ key: SMS_API_KEY, ...params });
+  const response = await axios.post(`${BASE_URL}${path}`, body.toString(), {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   });
-
-  const response = await axios.get(`${BASE_URL}?${query.toString()}`);
   return response.data;
 }
 
 async function getAvailableServices() {
-  const data = await requestSmsApi('getPrices','country=0');
-  return data;
+  return requestSmsApi('/service/retrieve_all');
 }
 
 async function getServiceAvailability(serviceName) {
   try {
-    const data = await requestSmsApi('getPrices', { country: COUNTRY_CODES.USA });
+    const data = await requestSmsApi('/sms/all_stock', { country: COUNTRY_CODES.USA });
     const serviceCode = SERVICE_CODES[serviceName] || String(serviceName).toLowerCase();
-    const countryPrices = data && typeof data === 'object' ? Object.values(data)[0] : null;
-    if (countryPrices && countryPrices[serviceCode]) {
-      return Number(countryPrices[serviceCode].count || 0) > 0;
-    }
-    const normalized = String(data || '').toLowerCase();
-    return normalized.includes(String(serviceName).toLowerCase()) || normalized.includes('ok');
+    const entries = Array.isArray(data) ? data.flat() : Object.values(data || {}).flat();
+    return entries.some((entry) => String(entry.service || entry.service_id || entry.ID) === serviceCode && Number(entry.stock || entry.count || entry.available || 0) > 0);
   } catch (error) {
     return false;
   }
@@ -56,19 +49,10 @@ async function getServiceAvailability(serviceName) {
 
 async function getPriceForService(serviceName) {
   try {
-    const data = await requestSmsApi('getPrices', { country: COUNTRY_CODES.USA });
+    const data = await requestSmsApi('/request/price', { country: COUNTRY_CODES.USA, service: SERVICE_CODES[serviceName] });
     const serviceCode = SERVICE_CODES[serviceName] || String(serviceName).toLowerCase();
-    const countryPrices = data && typeof data === 'object' ? Object.values(data)[0] : null;
-    if (countryPrices && countryPrices[serviceCode]) {
-      return formatNumber(countryPrices[serviceCode].cost);
-    }
-
-    if (typeof data === 'string') {
-      const serviceMatch = data.match(new RegExp(`${serviceName}.*?:(\\d+)`, 'i'));
-      if (serviceMatch && serviceMatch[1]) {
-        return formatNumber(serviceMatch[1]);
-      }
-    }
+    if (data && typeof data === 'object') return formatNumber(data.price || data.cost || data.low_price);
+    if (typeof data === 'string') return formatNumber(data.match(/[\d.]+/)?.[0]);
   } catch (error) {
     // Fallback gracefully if API or regex fails
   }
@@ -78,55 +62,51 @@ async function getPriceForService(serviceName) {
 
 async function buyNumber({ serviceName, country = '0', avg = 'false', premium = false }) {
   try {
-    const action = premium ? 'getNumberV2' : 'getNumber';
-    const response = await requestSmsApi(action, {
+    const response = await requestSmsApi('/purchase/sms', {
       service: SERVICE_CODES[serviceName] || String(serviceName).toLowerCase(),
       country: COUNTRY_CODES[country] || country,
-      avg,
-      forward: 0,
-      operator: 0,
+      pricing_option: premium ? '1' : '0',
+      quantity: '1',
+      activation_type: 'SMS',
     });
 
-    if (typeof response === 'string' && response.startsWith('ACCESS_NUMBER')) {
-      const parts = response.split(':');
-      const id = parts[1];
-      const number = parts[2] || '';
+    const order = Array.isArray(response) ? response[0] : response;
+    const activationId = order?.order_code || order?.orderid || order?.order_id || order?.id;
+    const phoneNumber = order?.phone_number || order?.phonenumber || order?.phone || order?.number;
+    if (activationId && phoneNumber) {
 
       return {
         success: true,
-        activation_id: id,
-        phone_number: number,
+        activation_id: String(activationId),
+        phone_number: String(phoneNumber),
         raw: response,
       };
     }
 
-    if (typeof response === 'string' && response.startsWith('NO_NUMBERS')) {
-      return { success: false, reason: 'No numbers available' };
-    }
-
-    return { success: false, reason: response || 'Unable to acquire number' };
+    return { success: false, reason: order?.message || order?.error || order?.detail || 'No numbers available' };
   } catch (error) {
-    return { success: false, reason: 'HeroSMS provider is unavailable. Please try again shortly.' };
+    return { success: false, reason: error.response?.data?.message || error.response?.data?.error || error.message || 'SMSPool provider is unavailable.' };
   }
 }
 
 async function getStatus(activationId) {
-  const response = await requestSmsApi('getStatus', { id: activationId });
+  const response = await requestSmsApi('/sms/check', { orderid: activationId });
   return response;
 }
 
 async function releaseNumber(activationId) {
-  const response = await requestSmsApi('setStatus', { id: activationId, status: '8' });
-  return typeof response === 'string' && response.startsWith('ACCESS_CANCEL');
+  const response = await requestSmsApi('/sms/cancel', { orderid: activationId });
+  return response?.success === true || response?.status === true || response?.status === 'success' || response?.message?.toLowerCase?.().includes('cancel');
 }
 
 async function getCode(activationId) {
-  const response = await requestSmsApi('getStatus', { id: activationId });
-  const text = typeof response === 'string' ? response : '';
+  const response = await requestSmsApi('/sms/check', { orderid: activationId });
+  const text = typeof response === 'string' ? response : JSON.stringify(response || {});
 
-  const receivedMatch = text.match(/^(?:STATUS_OK:|SMS:)([^\r\n]+)$/i);
-  if (receivedMatch && receivedMatch[1].trim()) {
-    const verificationText = receivedMatch[1].trim();
+  const code = response?.sms || response?.code || response?.full_code || response?.verification_code;
+  const receivedMatch = String(code || text).match(/(?:STATUS_OK:|SMS:|"sms":"|"code":"?)([^",}\r\n]+)|^(\d{3,8})$/i);
+  if (receivedMatch && (receivedMatch[1] || receivedMatch[2])) {
+    const verificationText = (receivedMatch[1] || receivedMatch[2]).trim();
     return {
       status: 'received',
       message: verificationText,
@@ -134,7 +114,7 @@ async function getCode(activationId) {
     };
   }
 
-  if (/^(STATUS_WAIT|STATUS_WAIT_CODE|STATUS_WAIT_RETRY|WAIT)/i.test(text)) {
+  if (/STATUS_WAIT|WAIT|pending|"status":1/i.test(text)) {
     return { status: 'waiting', message: 'Waiting for SMS...' };
   }
 
