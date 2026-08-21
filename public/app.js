@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(`Server returned non-JSON response: ${responseText || 'Empty response'}`);
       }
       if (!response.ok) {
-        throw new Error(payload.message || 'Purchase failure.');
+        throw new Error(payload.error || payload.message || 'Purchase failure.');
       }
 
       paymentSubmitted = true;

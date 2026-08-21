@@ -119,18 +119,17 @@ async function getCode(activationId) {
   const response = await requestSmsApi('getStatus', { id: activationId });
   const text = typeof response === 'string' ? response : '';
 
-  if (text.includes('STATUS_OK') || text.includes('STATUS_CANCEL')) {
-    const match = text.match(/SMS:([^\r\n]+)/i);
-    if (match) {
-      return {
-        status: 'received',
-        message: match[1].trim(),
-        verificationText: match[1].trim(),
-      };
-    }
+  const receivedMatch = text.match(/^(?:STATUS_OK:|SMS:)([^\r\n]+)$/i);
+  if (receivedMatch && receivedMatch[1].trim()) {
+    const verificationText = receivedMatch[1].trim();
+    return {
+      status: 'received',
+      message: verificationText,
+      verificationText,
+    };
   }
 
-  if (text.includes('WAIT')) {
+  if (/^(STATUS_WAIT|STATUS_WAIT_CODE|STATUS_WAIT_RETRY|WAIT)/i.test(text)) {
     return { status: 'waiting', message: 'Waiting for SMS...' };
   }
 

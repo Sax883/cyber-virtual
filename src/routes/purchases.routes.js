@@ -43,12 +43,13 @@ router.post('/checkout', ensureAuthenticated, async (req, res) => {
         packageName: package_name || packageInfo.label,
         amount: packageInfo.amount,
         userEmail: user.email,
+        proofReference: proof_reference,
       });
     } catch (notificationError) {
       console.error('Purchase notification failed:', notificationError.message);
     }
 
-    return res.json({
+    return res.status(201).json({
       success: true,
       credits: selectedCredits,
       amount: packageInfo.amount,
@@ -58,7 +59,7 @@ router.post('/checkout', ensureAuthenticated, async (req, res) => {
       message: 'Purchase request submitted successfully. Awaiting admin approval.',
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Unable to submit purchase request.' });
+    return res.status(500).json({ error: 'Unable to submit purchase request.' });
   }
 });
 

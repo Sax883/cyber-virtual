@@ -10,10 +10,10 @@ function getTwilioClient() {
   return twilio(apiKey, apiSecret, { accountSid });
 }
 
-async function sendCreditPurchaseWhatsAppNotification({ packageName, amount, userEmail }) {
+async function sendCreditPurchaseWhatsAppNotification({ packageName, amount, userEmail, proofReference = '' }) {
   const client = getTwilioClient();
 
-  const message = `New Cyber Virtual purchase request\n\nPackage: ${packageName}\nAmount: ₦${amount}\nUser: ${userEmail}\nStatus: pending admin approval`;
+  const message = `New Credit Top-Up Initiated\n\nClient Email: ${userEmail}\nPackage: ${packageName}\nAmount: NGN ${amount}\nReference: ${proofReference || 'Not provided'}\n\nPlease review and approve in the admin dashboard.`;
 
   try {
     const response = await client.messages.create({
