@@ -50,11 +50,17 @@ async function getServiceAvailability(serviceName) {
 }
 
 async function getPriceForService(serviceName) {
-  const data = await requestSmsApi('getPrices', { country: '0' });
+  try {
+    const data = await requestSmsApi('getPrices', { country: '0' });
 
-  if (typeof data === 'string') {
-    const serviceMatch = data.match(new RegExp(`${serviceName}.*?:(\d+)`, 'i'));
-    if (serviceMatch) return formatNumber(serviceMatch[1]);
+    if (typeof data === 'string') {
+      const serviceMatch = data.match(new RegExp(`${serviceName}.*?:(\\d+)`, 'i'));
+      if (serviceMatch && serviceMatch[1]) {
+        return formatNumber(serviceMatch[1]);
+      }
+    }
+  } catch (error) {
+    // Fallback gracefully if API or regex fails
   }
 
   return 8;
