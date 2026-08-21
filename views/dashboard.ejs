@@ -335,6 +335,7 @@
           <button type="button" id="closeCheckoutModal" class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-medium text-slate-700">Close</button>
         </div>
 
+        <div id="checkoutFormContent">
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-slate-700">
           <p><span class="font-semibold">Bank:</span> <span data-opay-field="bank"><%= opaySettings.bank %></span></p>
           <p class="flex items-center gap-2"><span><span class="font-semibold">Account Number:</span> <span data-opay-field="accountNumber"><%= opaySettings.accountNumber %></span></span><button id="copyOpayAccount" type="button" class="rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs font-semibold text-emerald-700">Copy</button></p>
@@ -357,6 +358,12 @@
         </div>
 
         <button id="submitPaymentRequest" class="mt-6 w-full rounded-2xl bg-emerald-500 px-5 py-3.5 text-base font-semibold text-white hover:bg-emerald-600">I have sent my payment</button>
+        </div>
+        <div id="paymentPendingState" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center">
+          <h3 class="text-lg font-bold text-slate-900">Payment submitted</h3>
+          <p class="mt-2 text-sm text-slate-700">Your payment is pending admin review. Credits will be added after confirmation.</p>
+          <button type="button" id="closePendingPayment" class="mt-5 rounded-2xl bg-emerald-500 px-5 py-3 font-semibold text-white">Close</button>
+        </div>
       </div>
     </div>
 

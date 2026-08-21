@@ -321,6 +321,10 @@ router.get('/admin/transactions', ensureAuthenticated, ensureAdmin, async (req, 
 });
 
 router.post('/admin/transactions/:id/approve', ensureAuthenticated, ensureAdmin, async (req, res) => {
+  if (!isValidObjectId(req.params.id)) {
+    return res.status(400).json({ message: 'Invalid transaction ID.' });
+  }
+
   const transaction = await Transaction.findById(req.params.id).populate('user_id', 'email');
 
   if (!transaction) {
@@ -356,6 +360,10 @@ router.post('/admin/transactions/:id/approve', ensureAuthenticated, ensureAdmin,
 });
 
 router.post('/admin/transactions/:id/pend', ensureAuthenticated, ensureAdmin, async (req, res) => {
+  if (!isValidObjectId(req.params.id)) {
+    return res.status(400).json({ message: 'Invalid transaction ID.' });
+  }
+
   const transaction = await Transaction.findById(req.params.id);
   if (!transaction) return res.status(404).json({ message: 'Transaction not found.' });
 
@@ -368,6 +376,10 @@ router.post('/admin/transactions/:id/pend', ensureAuthenticated, ensureAdmin, as
 });
 
 router.post('/admin/transactions/:id/fail', ensureAuthenticated, ensureAdmin, async (req, res) => {
+  if (!isValidObjectId(req.params.id)) {
+    return res.status(400).json({ message: 'Invalid transaction ID.' });
+  }
+
   const transaction = await Transaction.findById(req.params.id);
   if (!transaction) return res.status(404).json({ message: 'Transaction not found.' });
 

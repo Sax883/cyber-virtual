@@ -37,11 +37,16 @@ router.post('/checkout', ensureAuthenticated, async (req, res) => {
       proof_reference: proof_reference || '',
     });
 
-    const notification = await sendCreditPurchaseWhatsAppNotification({
-      packageName: package_name || packageInfo.label,
-      amount: packageInfo.amount,
-      userEmail: user.email,
-    });
+    let notification = { success: false, message: 'Notification delivery unavailable.' };
+    try {
+      notification = await sendCreditPurchaseWhatsAppNotification({
+        packageName: package_name || packageInfo.label,
+        amount: packageInfo.amount,
+        userEmail: user.email,
+      });
+    } catch (notificationError) {
+      console.error('Purchase notification failed:', notificationError.message);
+    }
 
     return res.json({
       success: true,

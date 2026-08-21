@@ -43,10 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const proofReference = document.getElementById('proofReference');
   const closeCheckoutModal = document.getElementById('closeCheckoutModal');
   const submitPaymentRequest = document.getElementById('submitPaymentRequest');
+  const checkoutFormContent = document.getElementById('checkoutFormContent');
+  const paymentPendingState = document.getElementById('paymentPendingState');
+  const closePendingPayment = document.getElementById('closePendingPayment');
   const workflowNotice = document.getElementById('workflowNotice');
   let selectedCountry = '';
   let selectedCredits = 1;
   let selectedPackageName = '1 Credit';
+  let paymentSubmitted = false;
 
   const setMenuOpen = (isOpen) => {
     menuPanel?.classList.toggle('open', isOpen);
@@ -185,6 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
       checkoutPackage.value = selectedPackageName;
       checkoutAmount.value = `₦${amount.toLocaleString()}`;
       proofReference.value = '';
+      paymentSubmitted = false;
+      checkoutFormContent?.classList.remove('hidden');
+      paymentPendingState?.classList.add('hidden');
       checkoutModal.classList.remove('hidden');
       checkoutModal.classList.add('flex');
       setTimeout(() => proofReference.focus(), 50);
@@ -192,8 +199,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   closeCheckoutModal?.addEventListener('click', () => {
+    if (paymentSubmitted) {
+      window.location.href = '/dashboard/purchases';
+      return;
+    }
     checkoutModal.classList.add('hidden');
     checkoutModal.classList.remove('flex');
+  });
+
+  closePendingPayment?.addEventListener('click', () => {
+    window.location.href = '/dashboard/purchases';
   });
 
   submitPaymentRequest?.addEventListener('click', async () => {
@@ -215,9 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(payload.message || 'Purchase failure.');
       }
 
-      checkoutModal.classList.add('hidden');
-      checkoutModal.classList.remove('flex');
-      window.location.href = '/dashboard/purchases';
+      paymentSubmitted = true;
+      checkoutFormContent?.classList.add('hidden');
+      paymentPendingState?.classList.remove('hidden');
+      showNotice('Payment submitted and pending admin approval.');
     } catch (error) {
       window.alert(error.message);
     }
@@ -268,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   if (document.querySelector('[data-credit-balance]')) {
     refreshCurrentUser();
-    window.setInterval(refreshCurrentUser, 60000);
+    window.setInterval(refreshCurrentUser, 5000);
   }
 
   const refreshAdminUsers = async () => {
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
   refreshAdminUsers();
-  window.setInterval(refreshAdminUsers, 60000);
+  window.setInterval(refreshAdminUsers, 5000);
 
   const adminTransactionState = document.getElementById('adminTransactionState');
   if (adminTransactionState) {
@@ -317,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isRefreshingTransactions = false;
       }
     };
-    window.setInterval(refreshAdminTransactions, 60000);
+    window.setInterval(refreshAdminTransactions, 5000);
   }
 
   document.querySelectorAll('[data-number-id]').forEach((card) => {
