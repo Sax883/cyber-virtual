@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cyber Virtual Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#ecfdf5',
+                100: '#d1fae5',
+                500: '#10b981',
+                600: '#059669',
+                700: '#047857',
+                900: '#022c22'
+              }
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      body { background: #f8fafc; color: #0f172a; }
+      .bottom-nav { box-shadow: 0 -14px 24px rgba(15, 23, 42, 0.06); }
+      .service-card img { width: 36px; height: 36px; object-fit: cover; border-radius: 12px; }
+      .menu-panel { transform: translateX(-100%); transition: transform 0.25s ease; }
+      .menu-panel.open { transform: translateX(0); }
+    </style>
+  </head>
+  <body class="pb-24">
+    <div class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
+      <script type="application/json" id="opaySettingsJson"><%- JSON.stringify(opaySettings || { bank: 'OPay', accountNumber: '9065781267', accountName: 'Gods power okpara chibueze' }) %></script>
+
+      <header class="mb-6 flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <button id="menuToggle" class="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-xl text-slate-700 md:hidden">☰</button>
+          <img src="/logo.jpeg" alt="Cyber Virtual logo" class="h-12 w-12 rounded-2xl object-cover" />
+          <div>
+            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Cyber Virtual</p>
+            <h1 class="mt-1 text-xl font-bold text-slate-900"><span data-user-name><%= user.name || 'Dashboard' %></span></h1>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-right">
+            <p class="text-[10px] uppercase tracking-[0.18em] text-emerald-700">Credits</p>
+            <p data-credit-balance class="text-lg font-bold text-emerald-700"><%= user.creditBalance %></p>
+          </div>
+          <a href="/auth/logout" class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">Logout</a>
+        </div>
+      </header>
+
+      <aside id="menuPanel" class="menu-panel fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-200 bg-white p-5 shadow-xl md:hidden">
+        <div class="mb-6 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <img src="/logo.jpeg" alt="Cyber Virtual logo" class="h-10 w-10 rounded-xl object-cover" />
+            <div>
+              <p class="text-[10px] uppercase tracking-[0.18em] text-slate-500">Cyber Virtual</p>
+              <h2 class="text-lg font-bold text-slate-900">Menu</h2>
+            </div>
+          </div>
+          <button id="menuClose" class="text-2xl text-slate-600">×</button>
+        </div>
+        <nav class="space-y-2">
+          <a href="/dashboard/services" class="block rounded-2xl <%= page === 'services' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Services</a>
+          <a href="/dashboard/numbers" class="block rounded-2xl <%= page === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Active Numbers</a>
+          <a href="/dashboard/purchases" class="block rounded-2xl <%= page === 'purchases' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Purchases</a>
+          <a href="/dashboard/profile" class="block rounded-2xl <%= page === 'profile' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Profile Settings</a>
+          <a href="/dashboard/support" class="block rounded-2xl <%= page === 'support' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Contact Support</a>
+          <a href="/auth/logout" class="mt-4 block rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 font-medium text-rose-700">Logout</a>
+        </nav>
+      </aside>
+
+      <% if (page === 'services' || !page) { %>
+        <main class="space-y-6">
+          <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="mb-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Service Finder</p>
+              <h2 class="mt-1 text-2xl font-bold text-slate-900">Request a number</h2>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <% const services = [{ name: 'WhatsApp', image: '/whatsapp.jpeg' }, { name: 'Telegram', image: '/telegram.jpeg' }, { name: 'Facebook', image: '/facebook.jpeg' }, { name: 'Instagram', image: '/instagram.jpeg' }, { name: 'TikTok', image: '/tiktok.jpeg' }, { name: 'Snapchat', image: '/snapchat.jpeg' }]; %>
+              <% services.forEach((service) => { %>
+                <button type="button" class="service-card service-select rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left transition hover:border-emerald-500 hover:bg-emerald-50" data-service="<%= service.name %>">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <img src="<%= service.image %>" alt="<%= service.name %> icon" />
+                      <span class="text-base font-semibold text-slate-900"><%= service.name %></span>
+                    </div>
+                    <span class="badge rounded-full bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">Ready</span>
+                  </div>
+                </button>
+              <% }); %>
+            </div>
+          </section>
+
+          <section id="countryRegionPanel" class="hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Country pricing</p>
+                <h2 class="mt-1 text-xl font-bold text-slate-900">Select a region</h2>
+              </div>
+            </div>
+            <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr]">
+              <div>
+                <label for="countrySearch" class="mb-2 block text-sm font-medium text-slate-700">Search regions</label>
+                <input id="countrySearch" type="search" placeholder="Search by country" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500" />
+              </div>
+              <div>
+                <label for="countrySelect" class="mb-2 block text-sm font-medium text-slate-700">Country or region</label>
+                <select id="countrySelect" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500">
+                  <% countries.forEach((country) => { %>
+                    <option value="<%= country %>"><%= country %></option>
+                  <% }); %>
+                </select>
+              </div>
+            </div>
+            <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Selected service</label>
+                <input id="serviceName" type="text" value="" readonly placeholder="Select a service first" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none" />
+              </div>
+              <label class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <input id="premiumMode" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" /> Premium
+              </label>
+            </div>
+            <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <span id="pricingSummary">USA, UK, Canada: Standard 8 credits · Premium 15 credits</span>
+            </div>
+            <button id="orderBtn" disabled class="mt-5 w-full rounded-2xl bg-emerald-500 px-5 py-3.5 text-base font-semibold text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50">Request number</button>
+          </section>
+        </main>
+      <% } %>
+
+      <% if (page === 'active') { %>
+        <main class="space-y-5">
+          <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="mb-3 flex items-center justify-between">
+              <h2 class="text-xl font-bold text-slate-900">Active Numbers</h2>
+              <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"><%= activeNumbers.length %> live</span>
+            </div>
+            <% if (activeNumbers.length === 0) { %>
+              <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-600">No active numbers yet. Request one from Services.</div>
+            <% } else { %>
+              <% activeNumbers.forEach((number) => { %>
+                <div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4" data-number-id="<%= number._id %>" data-expires-at="<%= number.expiresAt ? new Date(number.expiresAt).toISOString() : '' %>">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.18em] text-slate-500"><%= number.service_name %></p>
+                      <h3 class="mt-1 text-lg font-semibold text-slate-900"><%= number.phone_number || number.masked_phone_number %></h3>
+                    </div>
+                    <span class="rounded-full <%= number.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-200 text-slate-700' %> px-3 py-1 text-xs font-semibold"><%= number.status %></span>
+                  </div>
+                  <button type="button" class="copy-number-btn mt-3 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-700" data-phone="<%= number.phone_number %>">Copy number</button>
+                  <div class="mt-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+                    <span>Expires in</span>
+                    <strong class="countdown text-emerald-700"><%= number.expiresAt ? new Date(number.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A' %></strong>
+                  </div>
+                  <div class="mt-4 space-y-2">
+                    <% if (number.received_codes && number.received_codes.length > 0) { %>
+                      <% number.received_codes.forEach((code) => { %>
+                        <div class="rounded-xl border border-emerald-100 bg-white p-3 text-sm text-slate-700">
+                          <p class="font-semibold text-slate-900">Code received:</p>
+                          <p class="mt-1 text-emerald-700"><%= code.verificationText || code.message %></p>
+                          <p class="mt-1 text-xs text-slate-500"><%= new Date(code.timestamp).toLocaleString() %></p>
+                        </div>
+                      <% }); %>
+                    <% } else { %>
+                      <div class="sms-state rounded-xl border border-dashed border-slate-200 bg-white p-3 text-sm text-slate-600">Waiting for SMS...</div>
+                    <% } %>
+                  </div>
+                </div>
+              <% }); %>
+            <% } %>
+          </div>
+        </main>
+      <% } %>
+
+      <% if (page === 'purchases') { %>
+        <main class="space-y-6">
+          <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Top-up</p>
+                <h2 class="mt-1 text-2xl font-bold text-slate-900">Buy activation credits</h2>
+              </div>
+            </div>
+            <div class="grid auto-rows-fr gap-4 md:grid-cols-3">
+              <% pricing.forEach((tier) => { %>
+                <div class="flex h-full flex-col rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                  <% if (tier.badge) { %>
+                    <div class="mb-4 inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700"><%= tier.badge %></div>
+                  <% } %>
+                  <p class="text-sm uppercase tracking-[0.18em] text-slate-500"><%= tier.label %></p>
+                  <h3 class="mt-3 text-3xl font-bold text-slate-900"><%= tier.credits %></h3>
+                  <p class="mt-1 text-sm text-slate-600">Activation Credits</p>
+                  <p class="mt-4 text-xl font-semibold text-emerald-700">₦<%= tier.amount.toLocaleString() %></p>
+                  <div class="mt-auto pt-5">
+                    <button class="purchase-btn w-full rounded-2xl bg-emerald-500 px-4 py-3 font-semibold text-white hover:bg-emerald-600" data-credits="<%= tier.credits %>" data-package-name="<%= tier.label %>" data-amount="<%= tier.amount %>">Buy credit</button>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+
+            <% if (transactions && transactions.length > 0) { %>
+              <section class="mt-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="mb-4 flex items-center justify-between">
+                  <h3 class="text-lg font-bold text-slate-900">Purchase history</h3>
+                  <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700"><%= transactions.length %> entries</span>
+                </div>
+                <div class="space-y-3">
+                  <% transactions.forEach((txn) => { %>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div class="flex items-center justify-between gap-3">
+                        <div>
+                          <p class="text-sm font-semibold text-slate-900"><%= txn.package_name || 'Credit purchase' %></p>
+                          <p class="mt-1 text-xs text-slate-500"><%= new Date(txn.timestamp).toLocaleString() %></p>
+                        </div>
+                        <span class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide <%= txn.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : txn.status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700' %>"><%= txn.status %></span>
+                      </div>
+                      <div class="mt-3 flex items-center justify-between text-sm text-slate-700">
+                        <span>₦<%= Number(txn.amount || 0).toLocaleString() %></span>
+                        <span><%= txn.credits || 0 %> credits</span>
+                      </div>
+                    </div>
+                  <% }); %>
+                </div>
+              </section>
+            <% } %>
+          </section>
+        </main>
+      <% } %>
+
+      <% if (page === 'profile') { %>
+        <main class="space-y-6">
+          <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Account</p>
+            <h2 class="mt-1 text-2xl font-bold text-slate-900"><%= user.email %></h2>
+            <div class="mt-5 grid gap-3 sm:grid-cols-2">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Role</p>
+                <p class="mt-2 text-lg font-semibold capitalize text-slate-900"><%= user.role %></p>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Credits</p>
+                <p data-credit-balance class="mt-2 text-lg font-semibold text-emerald-700"><%= user.creditBalance %></p>
+              </div>
+            </div>
+            <div class="mt-5 space-y-4">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Display name</label>
+                <input id="profileName" type="text" value="<%= user.name || user.email.split('@')[0] %>" maxlength="100" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" />
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Preferred region</label>
+                <select id="profileRegion" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <% countries.forEach((country) => { %>
+                    <option value="<%= country %>" <%= user.preferredRegion === country ? 'selected' : '' %>><%= country %></option>
+                  <% }); %>
+                </select>
+              </div>
+              <button id="saveProfileBtn" type="button" class="rounded-2xl bg-emerald-500 px-5 py-3 font-semibold text-white hover:bg-emerald-600">Save profile</button>
+              <div id="profileResult" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700"></div>
+            </div>
+          </section>
+        </main>
+      <% } %>
+
+      <% if (page === 'support') { %>
+        <main class="space-y-6">
+          <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Support</p>
+            <h2 class="mt-1 text-2xl font-bold text-slate-900">Contact Support</h2>
+            <form id="supportForm" class="mt-5 space-y-4">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Subject</label>
+                <input id="supportSubject" type="text" placeholder="I need help with my activation" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" required />
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700">Message</label>
+                <textarea id="supportMessage" rows="4" placeholder="Write your message here..." class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" required></textarea>
+              </div>
+              <button type="submit" class="rounded-2xl bg-emerald-500 px-5 py-3 font-semibold text-white hover:bg-emerald-600">Send message</button>
+            </form>
+            <div id="supportResponse" class="mt-4 hidden rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700"></div>
+          </section>
+
+          <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 class="text-lg font-bold text-slate-900">Conversation history</h3>
+            <script type="application/json" id="supportState"><%- JSON.stringify(supportMessages.map((thread) => ({ id: thread._id, status: thread.status, updatedAt: thread.updatedAt, messageCount: (thread.messages || []).length, reply: thread.reply }))) %></script>
+            <div id="supportThreads" class="mt-4 space-y-3">
+              <% if (!supportMessages || supportMessages.length === 0) { %>
+                <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">No support messages yet.</div>
+              <% } else { %>
+                <% supportMessages.forEach((message) => { %>
+                  <div class="support-thread rounded-2xl border border-slate-200 bg-slate-50 p-4" data-support-id="<%= message._id %>">
+                    <div class="mb-2 flex items-center justify-between gap-3">
+                      <span class="font-semibold text-slate-900"><%= message.subject %></span>
+                    </div>
+                    <div class="space-y-2">
+                      <% if (message.messages && message.messages.length > 0) { %>
+                        <% message.messages.forEach((entry) => { %>
+                          <div class="rounded-xl border border-slate-200 <%= entry.sender === 'admin' ? 'bg-emerald-50' : 'bg-white' %> p-3 text-sm text-slate-700">
+                            <p class="font-semibold text-slate-900"><%= entry.sender === 'admin' ? 'Admin' : 'You' %></p>
+                            <p class="mt-1"><%= entry.message %></p>
+                          </div>
+                        <% }); %>
+                      <% } else { %>
+                        <div class="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700"><%= message.message %></div>
+                        <% if (message.reply) { %><div class="rounded-xl border border-slate-200 bg-emerald-50 p-3 text-sm text-slate-700"><p class="font-semibold text-slate-900">Admin</p><p class="mt-1"><%= message.reply %></p></div><% } %>
+                      <% } %>
+                    </div>
+                    <form class="support-reply-form mt-3 flex flex-col gap-2 sm:flex-row" data-support-id="<%= message._id %>">
+                      <input name="message" type="text" required placeholder="Reply to support" class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm" />
+                      <button type="submit" class="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white">Send</button>
+                    </form>
+                  </div>
+                <% }); %>
+              <% } %>
+            </div>
+          </section>
+        </main>
+      <% } %>
+    </div>
+
+    <div id="checkoutModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4">
+      <div class="w-full max-w-lg rounded-3xl bg-white p-5 shadow-2xl">
+        <div class="mb-5 flex items-center justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Manual payment</p>
+            <h3 class="mt-1 text-2xl font-bold text-slate-900">OPay checkout</h3>
+          </div>
+          <button type="button" id="closeCheckoutModal" class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-medium text-slate-700">Close</button>
+        </div>
+
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-slate-700">
+          <p><span class="font-semibold">Bank:</span> <span data-opay-field="bank"><%= opaySettings.bank %></span></p>
+          <p class="flex items-center gap-2"><span><span class="font-semibold">Account Number:</span> <span data-opay-field="accountNumber"><%= opaySettings.accountNumber %></span></span><button id="copyOpayAccount" type="button" class="rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs font-semibold text-emerald-700">Copy</button></p>
+          <p><span class="font-semibold">Account Name:</span> <span data-opay-field="accountName"><%= opaySettings.accountName %></span></p>
+        </div>
+
+        <div class="mt-5 space-y-4">
+          <div>
+            <label class="mb-2 block text-sm font-medium text-slate-700">Credit package</label>
+            <input id="checkoutPackage" type="text" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none" readonly />
+          </div>
+          <div>
+            <label class="mb-2 block text-sm font-medium text-slate-700">Amount</label>
+            <input id="checkoutAmount" type="text" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none" readonly />
+          </div>
+          <div>
+            <label for="proofReference" class="mb-2 block text-sm font-medium text-slate-700">Payment reference / transfer details</label>
+            <input id="proofReference" type="text" placeholder="Optional OPay transaction ID or payment note" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+
+        <button id="submitPaymentRequest" class="mt-6 w-full rounded-2xl bg-emerald-500 px-5 py-3.5 text-base font-semibold text-white hover:bg-emerald-600">I have sent my payment</button>
+      </div>
+    </div>
+
+    <div id="workflowNotice" class="fixed right-4 top-4 z-[60] hidden max-w-sm rounded-2xl border border-emerald-200 bg-white p-4 text-sm text-slate-700 shadow-2xl"></div>
+
+    <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-30 hidden border-t border-slate-200 bg-white md:block">
+      <div class="mx-auto grid max-w-6xl grid-cols-5 gap-1 px-2 py-2 text-center text-xs font-medium text-slate-600">
+        <a href="/dashboard/services" class="rounded-2xl <%= page === 'services' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600' %> px-2 py-3">
+          <div class="text-lg">◌</div>
+          <span>Services</span>
+        </a>
+        <a href="/dashboard/numbers" class="rounded-2xl <%= page === 'active' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600' %> px-2 py-3">
+          <div class="text-lg">◍</div>
+          <span>Active Numbers</span>
+        </a>
+        <a href="/dashboard/purchases" class="rounded-2xl <%= page === 'purchases' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600' %> px-2 py-3">
+          <div class="text-lg">◔</div>
+          <span>Purchases</span>
+        </a>
+        <a href="/dashboard/profile" class="rounded-2xl <%= page === 'profile' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600' %> px-2 py-3">
+          <div class="text-lg">◕</div>
+          <span>Settings</span>
+        </a>
+        <a href="/dashboard/support" class="rounded-2xl <%= page === 'support' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600' %> px-2 py-3">
+          <div class="text-lg">✉</div>
+          <span>Support</span>
+        </a>
+      </div>
+    </nav>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

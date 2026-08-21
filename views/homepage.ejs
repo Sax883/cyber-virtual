@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cyber Virtual | Secure SMS Verification Numbers</title>
+    <meta name="description" content="Cyber Virtual provides secure and private activation numbers for WhatsApp, Telegram, Facebook, Instagram, TikTok, and Snapchat verification." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#ecfdf5',
+                100: '#d1fae5',
+                500: '#10b981',
+                600: '#059669',
+                700: '#047857',
+                900: '#022c22'
+              }
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      .hero-grid { background-image: radial-gradient(circle at top, rgba(16,185,129,0.12), transparent 45%); }
+      .service-icon { width: 52px; height: 52px; object-fit: cover; border-radius: 16px; }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-900 antialiased">
+    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-3">
+          <img src="/logo.jpeg" alt="Cyber Virtual logo" class="h-12 w-12 rounded-2xl object-cover" />
+          <div>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Cyber Virtual</p>
+            <h1 class="text-lg font-bold text-slate-900">Secure Verification Access</h1>
+          </div>
+        </div>
+        <div class="hidden items-center gap-4 md:flex">
+          <a href="#services" class="text-sm font-medium text-slate-700 hover:text-emerald-600">Services</a>
+          <a href="#pricing" class="text-sm font-medium text-slate-700 hover:text-emerald-600">Pricing</a>
+          <a href="#support" class="text-sm font-medium text-slate-700 hover:text-emerald-600">Support</a>
+          <a href="/auth/login" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-500 hover:text-emerald-700">Login</a>
+          <a href="/auth/signup" class="rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600">Create account</a>
+        </div>
+        <a href="/auth/login" class="rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 md:hidden">Login</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-grid">
+        <div class="mx-auto grid max-w-7xl items-center gap-8 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-24">
+          <div>
+            <div class="mb-5 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Trusted by global users</div>
+            <h2 class="max-w-xl text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">Private number access for modern online verification.</h2>
+            <p class="mt-6 max-w-xl text-lg text-slate-600">Cyber Virtual gives you fast, secure access to real activation numbers for WhatsApp, Telegram, Facebook, Instagram, TikTok, Snapchat, and more—without compromising privacy or reliability.</p>
+            <div class="mt-8 flex flex-col gap-4 sm:flex-row">
+              <a href="/auth/signup" class="rounded-2xl bg-emerald-500 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600">Get started</a>
+              <a href="#services" class="rounded-2xl border border-slate-200 bg-white px-6 py-3.5 text-base font-semibold text-slate-700 hover:border-emerald-500 hover:text-emerald-700">Explore services</a>
+            </div>
+            <div class="mt-10 grid max-w-lg grid-cols-3 gap-4">
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p class="text-2xl font-black text-slate-900">30+</p>
+                <p class="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">Regions</p>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p class="text-2xl font-black text-slate-900">24/7</p>
+                <p class="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">Support</p>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p class="text-2xl font-black text-slate-900">99.9%</p>
+                <p class="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">Uptime</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-2xl shadow-slate-200/80 sm:p-6">
+            <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <img src="/logo.jpeg" alt="Cyber Virtual brand" class="h-12 w-12 rounded-2xl object-cover" />
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Activation</p>
+                    <h3 class="text-lg font-bold text-slate-900">Verification Queue</h3>
+                  </div>
+                </div>
+                <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Live</span>
+              </div>
+
+              <div class="mt-6 space-y-3">
+                <% const showcase = [
+                  { name: 'WhatsApp', region: 'USA', status: 'Ready in 2 mins' },
+                  { name: 'Telegram', region: 'UK', status: 'Ready in 4 mins' },
+                  { name: 'Instagram', region: 'Canada', status: 'Ready in 3 mins' },
+                  { name: 'TikTok', region: 'Germany', status: 'Ready in 5 mins' }
+                ]; %>
+                <% showcase.forEach((item) => { %>
+                  <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-3">
+                    <div class="flex items-center gap-3">
+                      <img src="/<%= item.name.toLowerCase() === 'whatsapp' ? 'whatsapp' : item.name.toLowerCase() === 'telegram' ? 'telegram' : item.name.toLowerCase() === 'instagram' ? 'instagram' : 'tiktok' %>.jpeg" alt="<%= item.name %>" class="service-icon" />
+                      <div>
+                        <p class="font-semibold text-slate-900"><%= item.name %></p>
+                        <p class="text-xs text-slate-500"><%= item.region %></p>
+                      </div>
+                    </div>
+                    <span class="text-xs font-medium text-emerald-700"><%= item.status %></span>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="services" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div class="mb-8 text-center">
+          <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Supported platforms</p>
+          <h3 class="mt-2 text-3xl font-bold text-slate-900">Reliable numbers for every app</h3>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <% const services = [
+            { name: 'WhatsApp', image: '/whatsapp.jpeg', text: 'Fast activation and secure code delivery' },
+            { name: 'Telegram', image: '/telegram.jpeg', text: 'Private account setup and verification' },
+            { name: 'Facebook', image: '/facebook.jpeg', text: 'Low-latency profile verification requests' },
+            { name: 'Instagram', image: '/instagram.jpeg', text: 'Instant access for account recovery flows' },
+            { name: 'TikTok', image: '/tiktok.jpeg', text: 'Quick verification for creator and business accounts' },
+            { name: 'Snapchat', image: '/snapchat.jpeg', text: 'High-reliability requests for profile activation' }
+          ]; %>
+          <% services.forEach((service) => { %>
+            <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div class="flex items-center gap-4">
+                <img src="<%= service.image %>" alt="<%= service.name %> icon" class="service-icon" />
+                <div>
+                  <h4 class="text-xl font-bold text-slate-900"><%= service.name %></h4>
+                  <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Available</p>
+                </div>
+              </div>
+              <p class="mt-4 text-slate-600"><%= service.text %></p>
+            </div>
+          <% }); %>
+        </div>
+      </section>
+
+      <section id="pricing" class="bg-slate-900 py-16 text-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="mb-8 text-center">
+            <p class="text-xs uppercase tracking-[0.18em] text-emerald-300">Regional pricing</p>
+            <h3 class="mt-2 text-3xl font-bold">Simple, transparent pricing</h3>
+          </div>
+          <div class="grid gap-5 md:grid-cols-3">
+            <div class="rounded-3xl border border-slate-700 bg-slate-800 p-6">
+              <p class="text-xs uppercase tracking-[0.18em] text-emerald-300">USA / UK / Canada</p>
+              <h4 class="mt-3 text-3xl font-black">8–15 credits</h4>
+              <p class="mt-3 text-slate-300">Standard pricing is set at 8 credits, with premium access at 15 credits.</p>
+            </div>
+            <div class="rounded-3xl border border-slate-700 bg-slate-800 p-6">
+              <p class="text-xs uppercase tracking-[0.18em] text-emerald-300">Africa & Europe</p>
+              <h4 class="mt-3 text-3xl font-black">5–13 credits</h4>
+              <p class="mt-3 text-slate-300">Fixed regional rates based on market demand and service availability.</p>
+            </div>
+            <div class="rounded-3xl border border-slate-700 bg-slate-800 p-6">
+              <p class="text-xs uppercase tracking-[0.18em] text-emerald-300">Asia & Americas</p>
+              <h4 class="mt-3 text-3xl font-black">5–12 credits</h4>
+              <p class="mt-3 text-slate-300">Flexible pricing for major verification markets including Japan, Mexico, UAE, and more.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="support" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+          <div class="grid gap-8 lg:grid-cols-2">
+            <div>
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Support</p>
+              <h3 class="mt-2 text-3xl font-bold text-slate-900">Need help? We’re here.</h3>
+              <p class="mt-4 text-slate-600">Reach out to our support team for activation issues, billing questions, or account help. You can also manage support threads inside your dashboard after logging in.</p>
+              <div class="mt-6 space-y-3 text-sm text-slate-700">
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">Email: support@cybervirtual.ng</div>
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">WhatsApp: +2349065781267</div>
+              </div>
+            </div>
+            <div class="rounded-3xl bg-emerald-50 p-6">
+              <h4 class="text-xl font-bold text-slate-900">Why users trust Cyber Virtual</h4>
+              <ul class="mt-4 space-y-3 text-slate-700">
+                <li>• Secure request flow and masked number handling</li>
+                <li>• Real-time SMS checking and status updates</li>
+                <li>• Manual OPay checkout with admin review</li>
+                <li>• Dedicated support and admin response tools</li>
+              </ul>
+              <a href="/auth/signup" class="mt-6 inline-flex rounded-2xl bg-emerald-500 px-5 py-3 font-semibold text-white hover:bg-emerald-600">Create free account</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-slate-200 bg-white">
+      <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <p>© 2026 Cyber Virtual. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <a href="/auth/login" class="hover:text-emerald-700">Login</a>
+          <a href="/auth/signup" class="hover:text-emerald-700">Sign up</a>
+          <a href="/admin/login" class="hover:text-emerald-700">Admin</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

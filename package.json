@@ -1,0 +1,36 @@
+{
+  "name": "cyber-virtual",
+  "version": "1.0.0",
+  "description": "Cyber Virtual - virtual phone number marketplace for social media verification",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed:admin": "node scripts/seed-admin.js"
+  },
+  "keywords": [
+    "virtual-numbers",
+    "sms-activation",
+    "express",
+    "mongodb"
+  ],
+  "author": "Cyber Virtual",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "bcryptjs": "^2.4.3",
+    "connect-mongo": "^6.0.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.2",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "express-session": "^1.19.0",
+    "helmet": "^8.0.0",
+    "mongoose": "^8.7.2",
+    "morgan": "^1.10.0",
+    "twilio": "^5.8.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
