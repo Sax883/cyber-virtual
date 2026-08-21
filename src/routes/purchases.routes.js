@@ -13,7 +13,15 @@ const packageMap = {
 };
 
 router.post('/checkout', ensureAuthenticated, async (req, res) => {
-  const { credits, proof_reference = '', package_name = '' } = req.body;
+  const {
+    credits,
+    email = '',
+    packageName = '',
+    amount = '',
+    reference = '',
+    proof_reference = '',
+    package_name = '',
+  } = req.body;
   const selectedCredits = Number(credits);
 
   if (!packageMap[selectedCredits]) {
@@ -27,26 +35,32 @@ router.post('/checkout', ensureAuthenticated, async (req, res) => {
     }
 
     const packageInfo = packageMap[selectedCredits];
+    const selectedPackageName = packageName || package_name || packageInfo.label;
+    const selectedReference = reference || proof_reference || '';
+    const selectedEmail = user.email || email;
     const transaction = await Transaction.create({
       user_id: user._id,
       amount: packageInfo.amount,
       gateway: 'manual_checkout',
       status: 'pending',
       credits: selectedCredits,
-      package_name: package_name || packageInfo.label,
-      proof_reference: proof_reference || '',
+      package_name: selectedPackageName,
+      proof_reference: selectedReference,
     });
 
     let notification = { success: false, message: 'Notification delivery unavailable.' };
     try {
       notification = await sendCreditPurchaseWhatsAppNotification({
-        packageName: package_name || packageInfo.label,
-        amount: packageInfo.amount,
-        userEmail: user.email,
-        proofReference: proof_reference,
+        packageName: selectedPackageName,
+        amount: Number(amount) || packageInfo.amount,
+        userEmail: selectedEmail,
+        proofReference: selectedReference,
       });
-    } catch (notificationError) {
-      console.error('Purchase notification failed:', notificationError.message);
+      if (!notification.success) {
+        throw new Error(notification.message || 'Twilio notification failed.');
+      }
+    } catch (error) {
+      console.error('TWILIO LIVE ERROR:', error);
     }
 
     return res.status(201).json({

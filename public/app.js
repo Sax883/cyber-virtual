@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
   })() : {};
   const opaySettings = { ...defaultOpaySettings, ...parsedOpaySettings };
 
-  const serviceButtons = document.querySelectorAll('.service-select');
+  const serviceSearch = document.getElementById('serviceSearch');
+  const serviceOptions = document.getElementById('serviceOptions');
+  const selectedServiceLabel = document.getElementById('selectedServiceLabel');
   const countryRegionPanel = document.getElementById('countryRegionPanel');
   const menuToggle = document.getElementById('menuToggle');
   const menuClose = document.getElementById('menuClose');
@@ -43,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const workflowNotice = document.getElementById('workflowNotice');
   let selectedCountry = '';
   let selectedCredits = 1;
+  let selectedAmount = 0;
   let selectedPackageName = '1 Credit';
   let paymentSubmitted = false;
 
@@ -95,22 +98,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  serviceButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      serviceButtons.forEach((btn) => {
-        btn.classList.remove('border-emerald-500', 'bg-emerald-50');
-        btn.classList.add('border-slate-200', 'bg-slate-50');
-      });
-      button.classList.remove('border-slate-200', 'bg-slate-50');
-      button.classList.add('border-emerald-500', 'bg-emerald-50');
-      serviceInput.value = button.dataset.service;
+  serviceSearch?.addEventListener('input', () => {
+    const selectedOption = Array.from(serviceOptions?.options || []).find((option) => option.value.toLowerCase() === serviceSearch.value.trim().toLowerCase());
+    serviceInput.value = selectedOption?.dataset.serviceId || '';
+    if (selectedServiceLabel) selectedServiceLabel.textContent = selectedOption?.value || 'Select a service first';
+    if (selectedOption) {
       countryRegionPanel?.classList.remove('hidden');
       countryRegionPanel?.scrollIntoView({ behavior: 'smooth' });
       orderBtn?.removeAttribute('disabled');
       if (!selectedCountry && countrySelect) {
         setCountryState(countrySelect.value);
       }
-    });
+    } else {
+      orderBtn?.setAttribute('disabled', 'disabled');
+    }
   });
 
   countrySelect?.addEventListener('change', () => setCountryState(countrySelect.value));
@@ -182,9 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
     button.addEventListener('click', () => {
       selectedCredits = Number(button.dataset.credits);
       selectedPackageName = button.dataset.packageName || packageMap[selectedCredits]?.label || 'Credit package';
-      const amount = Number(button.dataset.amount || packageMap[selectedCredits]?.amount || 0);
+      selectedAmount = Number(button.dataset.amount || packageMap[selectedCredits]?.amount || 0);
       checkoutPackage.value = selectedPackageName;
-      checkoutAmount.value = `₦${amount.toLocaleString()}`;
+      checkoutAmount.value = `₦${selectedAmount.toLocaleString()}`;
       proofReference.value = '';
       paymentSubmitted = false;
       checkoutFormContent?.classList.remove('hidden');
@@ -210,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   submitPaymentRequest?.addEventListener('click', async () => {
     const paymentReference = proofReference.value.trim();
+    const clientEmail = document.querySelector('[data-user-email]')?.dataset.userEmail || '';
 
     try {
       const response = await fetch('/api/purchases/checkout', {
@@ -217,8 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           credits: selectedCredits,
-          package_name: selectedPackageName,
-          proof_reference: paymentReference,
+          email: clientEmail,
+          packageName: selectedPackageName,
+          amount: selectedAmount,
+          reference: paymentReference,
         })
       });
 

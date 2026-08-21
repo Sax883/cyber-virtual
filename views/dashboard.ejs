@@ -42,7 +42,7 @@
           <img src="/logo.jpeg" alt="Cyber Virtual logo" class="h-12 w-12 rounded-2xl object-cover" />
           <div>
             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Cyber Virtual</p>
-            <h1 class="mt-1 text-xl font-bold text-slate-900"><span data-user-name><%= user.name || 'Dashboard' %></span></h1>
+            <h1 class="mt-1 text-xl font-bold text-slate-900"><span data-user-name data-user-email="<%= user.email %>"><%= user.name || 'Dashboard' %></span></h1>
           </div>
         </div>
         <div class="flex items-center gap-3">
@@ -81,17 +81,14 @@
               <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Service Finder</p>
               <h2 class="mt-1 text-2xl font-bold text-slate-900">Request a number</h2>
             </div>
-            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <% services.forEach((service) => { %>
-                <button type="button" class="service-card service-select rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left transition hover:border-emerald-500 hover:bg-emerald-50" data-service="<%= service.ID || service.id || service.service_id || service.code %>">
-                  <div class="flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                      <span class="text-base font-semibold text-slate-900"><%= service.name || service.service || service.service_name || service.title || service.label %></span>
-                    </div>
-                    <span class="badge rounded-full bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">Ready</span>
-                  </div>
-                </button>
-              <% }); %>
+            <div>
+              <label for="serviceSearch" class="mb-2 block text-sm font-medium text-slate-700">Search services</label>
+              <input id="serviceSearch" list="serviceOptions" type="search" autocomplete="off" placeholder="Type Telegram or WhatsApp" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500" />
+              <datalist id="serviceOptions">
+                <% services.forEach((service) => { %>
+                  <option value="<%= service.name || service.service || service.service_name || service.title || service.label %>" data-service-id="<%= service.ID || service.id || service.service_id || service.code %>"></option>
+                <% }); %>
+              </datalist>
             </div>
           </section>
 
@@ -119,7 +116,8 @@
             <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
               <div>
                 <label class="mb-2 block text-sm font-medium text-slate-700">Selected service</label>
-                <input id="serviceName" type="text" value="" readonly placeholder="Select a service first" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none" />
+                <input id="serviceName" type="hidden" value="" />
+                <p id="selectedServiceLabel" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-500">Select a service first</p>
               </div>
               <label class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                 <input id="premiumMode" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" /> Premium
