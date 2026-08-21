@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 const SMS_API_KEY = process.env.SMS_API_KEY || 'sk_C_yMH5p7cTmXFFPhkPSioir8eDxaRAPpLm7IiXdfYzE';
-const BASE_URL = 'https://api.sms-activate.org/stubs/handler_api.php';
+const BASE_URL = 'https://hero-sms.com/stubs/handler_api.php';
 
 const SERVICE_CODES = {
   WhatsApp: 'wa',
@@ -41,7 +41,12 @@ async function getAvailableServices() {
 
 async function getServiceAvailability(serviceName) {
   try {
-    const data = await requestSmsApi('getPrices', { country: '0' });
+    const data = await requestSmsApi('getPrices', { country: COUNTRY_CODES.USA });
+    const serviceCode = SERVICE_CODES[serviceName] || String(serviceName).toLowerCase();
+    const countryPrices = data && typeof data === 'object' ? Object.values(data)[0] : null;
+    if (countryPrices && countryPrices[serviceCode]) {
+      return Number(countryPrices[serviceCode].count || 0) > 0;
+    }
     const normalized = String(data || '').toLowerCase();
     return normalized.includes(String(serviceName).toLowerCase()) || normalized.includes('ok');
   } catch (error) {
@@ -51,7 +56,12 @@ async function getServiceAvailability(serviceName) {
 
 async function getPriceForService(serviceName) {
   try {
-    const data = await requestSmsApi('getPrices', { country: '0' });
+    const data = await requestSmsApi('getPrices', { country: COUNTRY_CODES.USA });
+    const serviceCode = SERVICE_CODES[serviceName] || String(serviceName).toLowerCase();
+    const countryPrices = data && typeof data === 'object' ? Object.values(data)[0] : null;
+    if (countryPrices && countryPrices[serviceCode]) {
+      return formatNumber(countryPrices[serviceCode].cost);
+    }
 
     if (typeof data === 'string') {
       const serviceMatch = data.match(new RegExp(`${serviceName}.*?:(\\d+)`, 'i'));
@@ -67,33 +77,37 @@ async function getPriceForService(serviceName) {
 }
 
 async function buyNumber({ serviceName, country = '0', avg = 'false', premium = false }) {
-  const action = premium ? 'getNumberV2' : 'getNumber';
-  const response = await requestSmsApi(action, {
-    service: SERVICE_CODES[serviceName] || String(serviceName).toLowerCase(),
-    country: COUNTRY_CODES[country] || country,
-    avg,
-    forward: 0,
-    operator: 0,
-  });
+  try {
+    const action = premium ? 'getNumberV2' : 'getNumber';
+    const response = await requestSmsApi(action, {
+      service: SERVICE_CODES[serviceName] || String(serviceName).toLowerCase(),
+      country: COUNTRY_CODES[country] || country,
+      avg,
+      forward: 0,
+      operator: 0,
+    });
 
-  if (typeof response === 'string' && response.startsWith('ACCESS_NUMBER')) {
-    const parts = response.split(':');
-    const id = parts[1];
-    const number = parts[2] || '';
+    if (typeof response === 'string' && response.startsWith('ACCESS_NUMBER')) {
+      const parts = response.split(':');
+      const id = parts[1];
+      const number = parts[2] || '';
 
-    return {
-      success: true,
-      activation_id: id,
-      phone_number: number,
-      raw: response,
-    };
+      return {
+        success: true,
+        activation_id: id,
+        phone_number: number,
+        raw: response,
+      };
+    }
+
+    if (typeof response === 'string' && response.startsWith('NO_NUMBERS')) {
+      return { success: false, reason: 'No numbers available' };
+    }
+
+    return { success: false, reason: response || 'Unable to acquire number' };
+  } catch (error) {
+    return { success: false, reason: 'HeroSMS provider is unavailable. Please try again shortly.' };
   }
-
-  if (typeof response === 'string' && response.startsWith('NO_NUMBERS')) {
-    return { success: false, reason: 'No numbers available' };
-  }
-
-  return { success: false, reason: response || 'Unable to acquire number' };
 }
 
 async function getStatus(activationId) {
