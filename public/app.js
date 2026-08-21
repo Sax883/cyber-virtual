@@ -4,17 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.remove('pb-24');
   }
 
-  const FIXED_COUNTRIES = new Set(['USA', 'UK', 'Canada']);
-  const COUNTRY_CREDIT_RULES = {
-    USA: { standard: 8, premium: 15 },
-    UK: { standard: 8, premium: 15 },
-    Canada: { standard: 8, premium: 15 },
-    Ghana: 7,
-    India: 5,
-    Germany: 13,
-    France: 9,
-    Brazil: 11,
-  };
   const defaultOpaySettings = {
     bank: 'OPay',
     accountNumber: '9065781267',
@@ -98,15 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!country || !pricingSummary || !premiumCheckbox) return;
     selectedCountry = country;
 
-    if (FIXED_COUNTRIES.has(country)) {
+    if (!country) return;
+    if (premiumCheckbox) {
       pricingSummary.textContent = `${country}: Standard 8 credits • Premium 15 credits`;
       premiumCheckbox.disabled = false;
-      premiumCheckbox.checked = false;
-    } else {
-      const fixedValue = COUNTRY_CREDIT_RULES[country] || 7;
-      const value = typeof fixedValue === 'object' ? fixedValue.standard : fixedValue;
-      pricingSummary.textContent = `${country}: Fixed credit pricing • ${value} credits`;
-      premiumCheckbox.disabled = true;
       premiumCheckbox.checked = false;
     }
   };
@@ -145,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   orderBtn?.addEventListener('click', async () => {
     const serviceName = serviceInput.value.trim();
-    const premium = premiumCheckbox.checked && FIXED_COUNTRIES.has(selectedCountry);
+    const premium = premiumCheckbox.checked;
     const country = selectedCountry || countrySelect?.value;
 
     if (!serviceName || !country) {

@@ -5,6 +5,7 @@ const SupportMessage = require('../models/SupportMessage');
 const Transaction = require('../models/Transaction');
 const { ensureAuthenticated } = require('../middleware/auth');
 const { getOpaySettings } = require('../services/settingsService');
+const { getAvailableCountries, getAvailableServices } = require('../services/smsService');
 
 const router = express.Router();
 
@@ -65,16 +66,12 @@ async function getCurrentUser(req) {
   return User.findOne({ email: req.session.user.email }).lean();
 }
 
-function getCountryOptions() {
-  return [
-    'USA', 'UK', 'Canada', 'India', 'Germany', 'France', 'Brazil', 'Ghana', 'Kenya', 'South Africa', 'Australia', 'Japan', 'South Korea', 'Italy', 'Spain', 'Netherlands', 'Sweden', 'Switzerland', 'Mexico', 'Argentina', 'Colombia', 'Indonesia', 'Malaysia', 'Philippines', 'Vietnam', 'Singapore', 'UAE', 'Saudi Arabia', 'Egypt', 'New Zealand', 'Nigeria', 'Turkey', 'Portugal', 'Norway', 'Poland'
-  ];
-}
-
 router.get('/', async (req, res) => {
+  let countries = [];
+  try { countries = await getAvailableCountries(); } catch (error) { console.error('Unable to load SMSPool countries:', error.message); }
   res.render('homepage', {
     user: req.session?.user || null,
-    countries: getCountryOptions(),
+    countries,
     pricing: countryPricing,
   });
 });
@@ -91,6 +88,7 @@ async function renderDashboard(req, res, page = 'services') {
     const transactions = req.session && req.session.user && isValidObjectId(req.session.user.id)
       ? await Transaction.find({ user_id: req.session.user.id }).sort({ timestamp: -1 }).lean()
       : [];
+    const [countries, services] = await Promise.all([getAvailableCountries(), getAvailableServices()]);
 
     res.render('dashboard', {
       user: { ...req.session.user, name: user?.name || req.session.user.name || '', preferredRegion: user?.preferredRegion || '', creditBalance: user ? user.creditBalance : 0 },
@@ -98,7 +96,8 @@ async function renderDashboard(req, res, page = 'services') {
       page,
       opaySettings,
       pricing: defaultPricing,
-      countries: getCountryOptions(),
+      countries,
+      services,
       supportMessages,
       countryPricing,
       transactions,
@@ -110,7 +109,8 @@ async function renderDashboard(req, res, page = 'services') {
       page,
       opaySettings: defaultOpaySettings,
       pricing: defaultPricing,
-      countries: getCountryOptions(),
+      countries: [],
+      services: [],
       supportMessages: [],
       countryPricing,
       transactions: [],
