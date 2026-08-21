@@ -82,6 +82,7 @@ app.use((req, res, next) => {
 
 app.use('/', dashboardRoutes);
 app.use('/api', apiRoutes);
+app.use('/api/purchases', purchaseRoutes);
 app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/purchases', purchaseRoutes);

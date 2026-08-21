@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const paymentReference = proofReference.value.trim();
 
     try {
-      const response = await fetch('/purchases/checkout', {
+      const response = await fetch('/api/purchases/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

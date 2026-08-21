@@ -1,12 +1,7 @@
 const twilio = require('twilio');
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID || '';
-const authToken = process.env.TWILIO_AUTH_TOKEN || '';
-const fromNumber = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886';
-const toNumber = process.env.TWILIO_WHATSAPP_TO || 'whatsapp:+2348023291356';
-
 function getTwilioClient() {
-  return twilio(accountSid, authToken);
+  return twilio(process.env.TWILIO_ACCOUNT_SID || '', process.env.TWILIO_AUTH_TOKEN || '');
 }
 
 async function sendCreditPurchaseWhatsAppNotification({ packageName, amount, userEmail, proofReference = '' }) {
@@ -16,8 +11,8 @@ async function sendCreditPurchaseWhatsAppNotification({ packageName, amount, use
 
   try {
     const response = await client.messages.create({
-      from: fromNumber,
-      to: toNumber,
+      from: process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886',
+      to: process.env.TWILIO_WHATSAPP_TO || 'whatsapp:+2348023291356',
       body: message,
     });
 
@@ -40,8 +35,8 @@ async function sendCreditPurchaseWhatsAppNotification({ packageName, amount, use
 
 module.exports = {
   sendCreditPurchaseWhatsAppNotification,
-  accountSid,
-  authToken,
-  fromNumber,
-  toNumber,
+  get accountSid() { return process.env.TWILIO_ACCOUNT_SID || ''; },
+  get authToken() { return process.env.TWILIO_AUTH_TOKEN || ''; },
+  get fromNumber() { return process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886'; },
+  get toNumber() { return process.env.TWILIO_WHATSAPP_TO || 'whatsapp:+2348023291356'; },
 };

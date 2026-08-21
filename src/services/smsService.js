@@ -1,6 +1,5 @@
 const axios = require('axios');
 
-const SMS_API_KEY = process.env.SMS_API_KEY || '';
 const BASE_URL = 'https://api.smspool.net';
 
 const SERVICE_CODES = {
@@ -24,8 +23,9 @@ const COUNTRY_CODES = {
 const formatNumber = (value) => Number(value || 0);
 
 async function requestSmsApi(path, params = {}) {
-  if (!SMS_API_KEY) throw new Error('SMS_API_KEY is not configured.');
-  const body = new URLSearchParams({ key: SMS_API_KEY, ...params });
+  const smsApiKey = process.env.SMS_API_KEY || '';
+  if (!smsApiKey) throw new Error('SMS_API_KEY is not configured.');
+  const body = new URLSearchParams({ key: smsApiKey, ...params });
   const response = await axios.post(`${BASE_URL}${path}`, body.toString(), {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   });
@@ -62,9 +62,14 @@ async function getPriceForService(serviceName) {
 
 async function buyNumber({ serviceName, country = '0', avg = 'false', premium = false }) {
   try {
+    const serviceId = SERVICE_CODES[serviceName];
+    const countryId = COUNTRY_CODES[country];
+    if (!serviceId) return { success: false, reason: 'Unsupported service selection.' };
+    if (!countryId) return { success: false, reason: 'Unsupported country selection.' };
+
     const response = await requestSmsApi('/purchase/sms', {
-      service: SERVICE_CODES[serviceName] || String(serviceName).toLowerCase(),
-      country: COUNTRY_CODES[country] || country,
+      service: serviceId,
+      country: countryId,
       pricing_option: premium ? '1' : '0',
       quantity: '1',
       activation_type: 'SMS',
@@ -129,5 +134,5 @@ module.exports = {
   releaseNumber,
   getStatus,
   getCode,
-  SMS_API_KEY,
+  get SMS_API_KEY() { return process.env.SMS_API_KEY || ''; },
 };
