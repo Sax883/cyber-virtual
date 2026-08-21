@@ -16,7 +16,12 @@ const apiRoutes = require('./routes/api.routes');
 
 const app = express();
 
+const mongoUri = getMongoUri();
+
 app.use(async (req, res, next) => {
+  const needsDatabase = /^\/(auth|admin|dashboard|api|purchases)(\/|$)/.test(req.path);
+  if (!needsDatabase) return next();
+
   try {
     await connectDB();
     next();
@@ -38,7 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../')));
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.use(session({
+const sessionOptions = {
   secret: process.env.SESSION_SECRET || 'cybervirtual-session-secret',
   resave: false,
   saveUninitialized: false,
@@ -47,11 +52,16 @@ app.use(session({
     secure: false,
     maxAge: 1000 * 60 * 60 * 24 * 7,
   },
-  store: MongoStore.create({
-    mongoUrl: getMongoUri(),
+};
+
+if (mongoUri) {
+  sessionOptions.store = MongoStore.create({
+    mongoUrl: mongoUri,
     ttl: 60 * 60 * 24 * 7,
-  }),
-}));
+  });
+}
+
+app.use(session(sessionOptions));
 
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
