@@ -218,7 +218,7 @@
                           <p class="text-sm font-semibold text-slate-900"><%= txn.package_name || 'Credit purchase' %></p>
                           <p class="mt-1 text-xs text-slate-500"><%= new Date(txn.timestamp).toLocaleString() %></p>
                         </div>
-                        <span class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide <%= txn.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : txn.status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700' %>"><%= txn.status %></span>
+                        <span class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide <%= txn.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : txn.status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700' %>"><%= txn.status.toUpperCase() %></span>
                       </div>
                       <div class="mt-3 flex items-center justify-between text-sm text-slate-700">
                         <span>₦<%= Number(txn.amount || 0).toLocaleString() %></span>

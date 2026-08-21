@@ -245,7 +245,7 @@ router.post('/numbers/:id/reveal', ensureAuthenticated, async (req, res) => {
 });
 
 router.get('/admin/users', ensureAuthenticated, ensureAdmin, async (req, res) => {
-  const users = await User.find({ adminHidden: { $ne: true } }).select('name email preferredRegion role creditBalance createdAt').sort({ createdAt: -1 }).limit(2);
+  const users = await User.find({ adminHidden: { $ne: true } }).select('name email preferredRegion role creditBalance createdAt').sort({ createdAt: -1 });
   res.json(users);
 });
 
@@ -329,6 +329,10 @@ router.post('/admin/transactions/:id/approve', ensureAuthenticated, ensureAdmin,
 
   if (!transaction) {
     return res.status(404).json({ message: 'Transaction not found.' });
+  }
+
+  if (transaction.status !== 'pending') {
+    return res.status(400).json({ message: 'Only pending transactions can be approved.' });
   }
 
   if (transaction.creditsApplied) {

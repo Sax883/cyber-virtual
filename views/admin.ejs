@@ -191,7 +191,7 @@
                       <td class="py-3 pr-4"><%= txn.package_name || 'Credit pack' %> (<%= txn.displayCredits || 0 %> credits)</td>
                       <td class="py-3 pr-4">₦<%= Number(txn.amount || 0).toLocaleString() %></td>
                       <td class="py-3 pr-4"><%= txn.proof_reference || '—' %></td>
-                      <td class="py-3 pr-4"><span class="rounded-full <%= txn.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : txn.status === 'failed' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700' %> px-2 py-1 text-xs font-semibold"><%= txn.status %></span></td>
+                      <td class="py-3 pr-4"><span class="rounded-full <%= txn.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : txn.status === 'failed' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700' %> px-2 py-1 text-xs font-semibold"><%= txn.status.toUpperCase() %></span></td>
                       <td class="py-3 pr-4"><div class="flex flex-wrap gap-2"><button type="button" class="approve-btn rounded-xl bg-emerald-500 px-3 py-2 text-[11px] font-semibold text-white hover:bg-emerald-600" data-id="<%= txn._id %>">Confirm</button><button type="button" class="pend-btn rounded-xl bg-amber-100 px-3 py-2 text-[11px] font-semibold text-amber-700 hover:bg-amber-200" data-id="<%= txn._id %>">Pend</button><button type="button" class="fail-btn rounded-xl bg-rose-100 px-3 py-2 text-[11px] font-semibold text-rose-700 hover:bg-rose-200" data-id="<%= txn._id %>">Failed</button><button type="button" class="delete-btn rounded-xl bg-slate-200 px-3 py-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-300" data-id="<%= txn._id %>">Delete</button></div></td>
                     </tr>
                   <% }); %>
