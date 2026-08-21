@@ -7,7 +7,7 @@ const MongoStore = MongoStoreModule.MongoStore || MongoStoreModule.default || Mo
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-const { connectDB, getMongoUri } = require('./config/db');
+const { connectDB, getMongoUri, hasValidMongoUri } = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const adminRoutes = require('./routes/admin.routes');
@@ -54,11 +54,15 @@ const sessionOptions = {
   },
 };
 
-if (mongoUri) {
-  sessionOptions.store = MongoStore.create({
-    mongoUrl: mongoUri,
-    ttl: 60 * 60 * 24 * 7,
-  });
+if (hasValidMongoUri()) {
+  try {
+    sessionOptions.store = MongoStore.create({
+      mongoUrl: mongoUri,
+      ttl: 60 * 60 * 24 * 7,
+    });
+  } catch (error) {
+    console.error('MongoDB session store unavailable:', error.message);
+  }
 }
 
 app.use(session(sessionOptions));

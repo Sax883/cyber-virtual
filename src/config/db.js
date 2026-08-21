@@ -8,6 +8,10 @@ function getMongoUri() {
   return uri;
 }
 
+function hasValidMongoUri() {
+  return /^mongodb(?:\+srv)?:\/\/\S+$/i.test(getMongoUri());
+}
+
 function connectDB() {
   if (mongoose.connection.readyState === 1) {
     return Promise.resolve(mongoose.connection);
@@ -36,4 +40,4 @@ function connectDB() {
   return connectionPromise;
 }
 
-module.exports = { connectDB, getMongoUri };
+module.exports = { connectDB, getMongoUri, hasValidMongoUri };
