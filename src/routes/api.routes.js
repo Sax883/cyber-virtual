@@ -135,7 +135,7 @@ router.get('/availability/:serviceName', ensureAuthenticated, async (req, res) =
   res.json({ available });
 });
 
-router.post('/order', ensureAuthenticated, async (req, res) => {
+async function requestNumberHandler(req, res) {
   const serviceName = req.body.serviceName || req.body.service;
   const country = req.body.country || 'USA';
   const premium = req.body.premium || false;
@@ -144,18 +144,20 @@ router.post('/order', ensureAuthenticated, async (req, res) => {
     return res.status(400).json({ message: 'Service name is required.' });
   }
 
-  const user = await User.findById(req.session.user.id);
-
-  if (!user) {
-    return res.status(404).json({ message: 'User not found.' });
-  }
-
-  const requiredCredits = getRequiredCredits(country, premium);
-  if (user.creditBalance < requiredCredits) {
-    return res.status(400).json({ message: `Insufficient credits. ${requiredCredits} required.` });
-  }
+  let chargedUser = null;
+  let chargedCredits = 0;
 
   try {
+    const user = await User.findById(req.session.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const requiredCredits = getRequiredCredits(country, premium);
+    if (user.creditBalance < requiredCredits) {
+      return res.status(400).json({ error: 'Insufficient balance, please top up credits.', requiredCredits });
+    }
+
     const purchase = await buyNumber({
       serviceName,
       premium,
@@ -164,12 +166,14 @@ router.post('/order', ensureAuthenticated, async (req, res) => {
     });
 
     if (!purchase.success) {
-      return res.status(400).json({ message: purchase.reason || 'Unable to purchase number.' });
+      return res.status(400).json({ error: purchase.reason || 'Unable to purchase number.' });
     }
 
     user.creditBalance -= requiredCredits;
     if (!user.name) user.name = user.email.split('@')[0];
     await user.save();
+    chargedUser = user;
+    chargedCredits = requiredCredits;
     req.session.user.creditBalance = user.creditBalance;
 
     const activeNumber = await ActiveNumber.create({
@@ -188,6 +192,7 @@ router.post('/order', ensureAuthenticated, async (req, res) => {
       success: true,
       activation_id: activeNumber.activation_id,
       phone_number: activeNumber.phone_number,
+      phoneNumber: activeNumber.phone_number,
       masked_phone_number: activeNumber.masked_phone_number,
       service_name: activeNumber.service_name,
       country,
@@ -197,9 +202,21 @@ router.post('/order', ensureAuthenticated, async (req, res) => {
       revealed: activeNumber.revealed,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Unable to process order.', error: error.message });
+    if (chargedUser && chargedCredits > 0) {
+      chargedUser.creditBalance += chargedCredits;
+      await chargedUser.save().catch(() => {});
+    }
+    return res.status(500).json({ error: 'Unable to request number.' });
   }
-});
+}
+
+router.post('/request-number', (req, res, next) => {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
+  return next();
+}, requestNumberHandler);
+router.post('/order', ensureAuthenticated, requestNumberHandler);
 
 router.get('/numbers', ensureAuthenticated, async (req, res) => {
   const numbers = await ActiveNumber.find({ user_id: req.session.user.id }).sort({ createdAt: -1 });
