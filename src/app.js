@@ -16,7 +16,15 @@ const apiRoutes = require('./routes/api.routes');
 
 const app = express();
 
-connectDB();
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Request blocked because MongoDB is unavailable:', error.message);
+    res.status(503).send('Database service is temporarily unavailable. Please try again shortly.');
+  }
+});
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));

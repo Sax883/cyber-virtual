@@ -1,16 +1,33 @@
 const mongoose = require('mongoose');
 
-async function connectDB() {
-  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cybervirtual';
+let connectionPromise;
 
-  try {
-    await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
-    });
-    console.log('MongoDB connected successfully');
-  } catch (error) {
-    console.error('MongoDB connection failed. Starting app in degraded mode:', error.message);
+function connectDB() {
+  if (mongoose.connection.readyState === 1) {
+    return Promise.resolve(mongoose.connection);
   }
+
+  if (connectionPromise) return connectionPromise;
+
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    return Promise.reject(new Error('MONGODB_URI is not configured.'));
+  }
+
+  connectionPromise = mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000,
+    })
+    .then(() => {
+      console.log('MongoDB connected successfully');
+      return mongoose.connection;
+    })
+    .catch((error) => {
+      connectionPromise = null;
+      console.error('MongoDB connection failed:', error.message);
+      throw error;
+    });
+
+  return connectionPromise;
 }
 
 module.exports = { connectDB };
