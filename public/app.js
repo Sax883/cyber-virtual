@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const bottomNav = document.querySelector('.bottom-nav');
+  if (!bottomNav || window.getComputedStyle(bottomNav).display === 'none') {
+    document.body.classList.remove('pb-24');
+  }
+
   const FIXED_COUNTRIES = new Set(['USA', 'UK', 'Canada']);
   const COUNTRY_CREDIT_RULES = {
     USA: { standard: 8, premium: 15 },
@@ -170,7 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
       showNotice(`Number assigned: ${payload.phoneNumber}. Open Active Numbers to monitor codes.`);
       window.setTimeout(() => { window.location.href = '/dashboard/numbers'; }, 900);
     } catch (error) {
-      showNotice(error.message, 'error');
+      const message = error instanceof Error ? error.message : String(error || 'Unable to request number.');
+      showNotice(message, 'error');
     }
   });
 
