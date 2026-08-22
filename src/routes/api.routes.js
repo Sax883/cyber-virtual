@@ -31,6 +31,13 @@ const COUNTRY_CREDIT_RULES = {
   Brazil: 11,
 };
 
+const COUNTRY_NAMES_BY_ID = {
+  187: 'USA', 16: 'UK', 36: 'Canada', 22: 'India', 43: 'Germany', 78: 'France', 73: 'Brazil', 60: 'Ghana', 38: 'Kenya',
+  31: 'South Africa', 175: 'Australia', 4: 'Japan', 51: 'South Korea', 86: 'Italy', 56: 'Spain', 48: 'Netherlands',
+  46: 'Sweden', 9: 'Switzerland', 52: 'Mexico', 7: 'Argentina', 33: 'Colombia', 6: 'Indonesia', 10: 'Vietnam', 196: 'Singapore',
+  2: 'UAE', 11: 'Saudi Arabia', 21: 'Egypt', 67: 'New Zealand', 62: 'Turkey', 117: 'Portugal', 74: 'Norway', 15: 'Poland',
+};
+
 function isValidObjectId(value) {
   return /^[0-9a-fA-F]{24}$/.test(String(value || ''));
 }
@@ -44,7 +51,10 @@ function maskPhoneNumber(phoneNumber = '') {
 }
 
 function getRequiredCredits(country, premium) {
-  const normalized = String(country || 'USA').trim();
+  const requested = String(country || 'USA').trim();
+  const normalized = COUNTRY_NAMES_BY_ID[requested] || requested;
+  if (premium) return 15;
+
   if (COUNTRY_CREDIT_RULES[normalized]) {
     const rule = COUNTRY_CREDIT_RULES[normalized];
     if (typeof rule === 'object') {
@@ -53,7 +63,7 @@ function getRequiredCredits(country, premium) {
     return rule;
   }
 
-  return Math.floor(Math.random() * 13) + 3;
+  return 8;
 }
 
 async function cancelAndRefundNumber(activeNumber, user, req) {

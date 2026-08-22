@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (error && typeof error === 'object') {
       if (typeof error.message === 'string' && error.message.trim()) return error.message;
       if (typeof error.error === 'string' && error.error.trim()) return error.error;
+      if (error.response?.data) return getErrorMessage(error.response.data, fallback);
       try {
         const serialized = JSON.stringify(error);
         if (serialized && serialized !== '{}') return serialized;
