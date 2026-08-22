@@ -87,8 +87,10 @@
               <input id="serviceSearch" type="search" autocomplete="off" placeholder="Search services, e.g. Telegram or WhatsApp" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500" />
               <div id="serviceOptions" class="service-results mt-3 divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
                 <% services.forEach((service) => { %>
-                  <button type="button" class="service-option flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-emerald-50" data-service-id="<%= service.ID || service.id || service.service_id || service.code %>" data-service-name="<%= service.name || service.service || service.service_name || service.title || service.label %>">
-                    <span class="font-medium"><%= service.name || service.service || service.service_name || service.title || service.label %></span>
+                  <% const serviceName = service.name || service.service || service.service_name || service.title || service.label; %>
+                  <% const serviceImage = { WhatsApp: '/whatsapp.jpeg', Telegram: '/telegram.jpeg', Facebook: '/facebook.jpeg', Instagram: '/instagram.jpeg', TikTok: '/tiktok.jpeg', Snapchat: '/snapchat.jpeg' }[serviceName]; %>
+                  <button type="button" class="service-option flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-emerald-50" data-service-id="<%= service.ID || service.id || service.service_id || service.code %>" data-service-name="<%= serviceName %>">
+                    <span class="flex items-center gap-3 font-medium"><% if (serviceImage) { %><img src="<%= serviceImage %>" alt="<%= serviceName %> icon" class="h-9 w-9 rounded-xl object-cover" /><% } %><%= serviceName %></span>
                     <span class="text-xs text-slate-400">Select</span>
                   </button>
                 <% }); %>
