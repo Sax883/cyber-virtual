@@ -50,11 +50,11 @@
               <form method="POST" action="/admin/login" class="space-y-5">
                 <div>
                   <label for="email" class="mb-2 block text-sm font-medium text-slate-700">Email</label>
-                  <input id="email" name="email" type="email" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500" value="admin@cybervirtual.ng" />
+                  <input id="email" name="email" type="email" autocomplete="username" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500" />
                 </div>
                 <div>
                   <label for="password" class="mb-2 block text-sm font-medium text-slate-700">Password</label>
-                  <input id="password" name="password" type="password" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500" value="Power081" />
+                  <input id="password" name="password" type="password" autocomplete="new-password" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-emerald-500" />
                 </div>
                 <button type="submit" class="w-full rounded-2xl bg-emerald-500 px-5 py-3.5 text-base font-semibold text-white hover:bg-emerald-600">Log in to dashboard</button>
               </form>
