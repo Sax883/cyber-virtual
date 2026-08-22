@@ -576,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       response.classList.remove('hidden', 'border-emerald-200', 'bg-emerald-50', 'text-emerald-700');
       response.classList.add('border-rose-200', 'bg-rose-50', 'text-rose-700');
-      response.textContent = error.message;
+      response.textContent = getErrorMessage(error);
     }
   });
 
@@ -691,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (error) {
         result.classList.remove('hidden');
         result.classList.add('border-rose-200', 'bg-rose-50', 'text-rose-700');
-        result.textContent = error.message;
+        result.textContent = getErrorMessage(error);
       }
     });
   }
