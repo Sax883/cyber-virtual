@@ -265,7 +265,9 @@
                 <label class="mb-2 block text-sm font-medium text-slate-700">Preferred region</label>
                 <select id="profileRegion" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                   <% countries.forEach((country) => { %>
-                    <option value="<%= country %>" <%= user.preferredRegion === country ? 'selected' : '' %>><%= country %></option>
+                    <% const countryId = country.ID || country.id || country.country_id || country.code; %>
+                    <% const countryName = country.name || country.country || country.country_name || country.title || country.label; %>
+                    <option value="<%= countryId %>" <%= String(user.preferredRegion || '') === String(countryId) || String(user.preferredRegion || '') === String(countryName) ? 'selected' : '' %>><%= countryName %></option>
                   <% }); %>
                 </select>
               </div>
