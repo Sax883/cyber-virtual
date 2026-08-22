@@ -62,9 +62,25 @@ document.addEventListener('DOMContentLoaded', () => {
     link.addEventListener('click', () => setMenuOpen(false));
   });
 
+  const getErrorMessage = (error, fallback = 'Something went wrong.') => {
+    if (error instanceof Error && error.message) return error.message;
+    if (typeof error === 'string' && error.trim()) return error;
+    if (error && typeof error === 'object') {
+      if (typeof error.message === 'string' && error.message.trim()) return error.message;
+      if (typeof error.error === 'string' && error.error.trim()) return error.error;
+      try {
+        const serialized = JSON.stringify(error);
+        if (serialized && serialized !== '{}') return serialized;
+      } catch (serializationError) {
+        return fallback;
+      }
+    }
+    return fallback;
+  };
+
   const showNotice = (message, tone = 'success') => {
     if (!workflowNotice) return;
-    workflowNotice.textContent = message;
+    workflowNotice.textContent = getErrorMessage(message);
     workflowNotice.className = `fixed right-4 top-4 z-[60] max-w-sm rounded-2xl border p-4 text-sm shadow-2xl ${tone === 'error' ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-white text-slate-700'}`;
     window.setTimeout(() => workflowNotice.classList.add('hidden'), 5000);
   };
@@ -180,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showNotice(`Number assigned: ${payload.phoneNumber}. Open Active Numbers to monitor codes.`);
       window.setTimeout(() => { window.location.href = '/dashboard/numbers'; }, 900);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error || 'Unable to request number.');
+      const message = getErrorMessage(error, 'Unable to request number.');
       showNotice(message, 'error');
     }
   });
@@ -262,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
       paymentPendingState?.classList.remove('hidden');
       showNotice('Payment submitted and pending admin approval.');
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error || 'Purchase failure.');
+      const message = getErrorMessage(error, 'Purchase failure.');
       window.alert(message);
     }
   });
@@ -288,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         button.closest('[data-number-id]')?.remove();
         showNotice(payload.message || 'Number session cancelled.');
       } catch (error) {
-        showNotice(error instanceof Error ? error.message : String(error || 'Unable to cancel number.'), 'error');
+        showNotice(getErrorMessage(error, 'Unable to cancel number.'), 'error');
         button.disabled = false;
       }
     });
@@ -309,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (copyButton) copyButton.dataset.phone = payload.phone_number;
         showNotice('Number replaced successfully.');
       } catch (error) {
-        showNotice(error instanceof Error ? error.message : String(error || 'Unable to replace number.'), 'error');
+        showNotice(getErrorMessage(error, 'Unable to replace number.'), 'error');
       } finally {
         button.disabled = false;
       }
@@ -326,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         button.closest('[data-number-id]')?.remove();
         showNotice(payload.message || 'Number session deleted.');
       } catch (error) {
-        showNotice(error instanceof Error ? error.message : String(error || 'Unable to delete number session.'), 'error');
+        showNotice(getErrorMessage(error, 'Unable to delete number session.'), 'error');
       }
     });
   });
@@ -347,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotice(payload.smsStatus === 'received' ? 'Verification code received.' : 'Checking for a new verification code.');
         window.setTimeout(() => window.location.reload(), 500);
       } catch (error) {
-        showNotice(error instanceof Error ? error.message : String(error || 'Unable to request a verification code.'), 'error');
+        showNotice(getErrorMessage(error, 'Unable to request a verification code.'), 'error');
       } finally {
         button.disabled = false;
       }
@@ -376,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       result.classList.remove('hidden', 'border-emerald-200', 'bg-emerald-50', 'text-emerald-700');
       result.classList.add('border-rose-200', 'bg-rose-50', 'text-rose-700');
-      result.textContent = error.message;
+      result.textContent = getErrorMessage(error);
     }
   });
 
@@ -572,7 +588,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await submitSupportMessage(`/api/support/messages/${form.dataset.supportId}/reply`, { message: input.value.trim() });
         window.location.reload();
       } catch (error) {
-        showNotice(error.message, 'error');
+        showNotice(getErrorMessage(error), 'error');
       }
     });
   });
@@ -585,7 +601,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await submitSupportMessage(`/api/admin/support/${form.dataset.supportId}/reply`, { message: input.value.trim() });
         window.location.reload();
       } catch (error) {
-        showNotice(error.message, 'error');
+        showNotice(getErrorMessage(error), 'error');
       }
     });
   });
@@ -600,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotice(payload.message || 'Support chat deleted.');
         window.setTimeout(() => window.location.reload(), 400);
       } catch (error) {
-        showNotice(error.message, 'error');
+        showNotice(getErrorMessage(error), 'error');
       }
     });
   });
@@ -616,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotice(payload.message || 'Client support chats deleted.');
         window.setTimeout(() => window.location.reload(), 400);
       } catch (error) {
-        showNotice(error.message, 'error');
+        showNotice(getErrorMessage(error), 'error');
       }
     });
   });
@@ -693,7 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         await triggerTransactionAction(`/api/admin/transactions/${button.dataset.id}/approve`, 'Transaction approved.');
       } catch (error) {
-        window.alert(error.message);
+        window.alert(getErrorMessage(error));
       }
     });
   });
@@ -703,7 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         await triggerTransactionAction(`/api/admin/transactions/${button.dataset.id}/pend`, 'Transaction marked pending.');
       } catch (error) {
-        window.alert(error.message);
+        window.alert(getErrorMessage(error));
       }
     });
   });
@@ -713,7 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         await triggerTransactionAction(`/api/admin/transactions/${button.dataset.id}/fail`, 'Transaction marked failed.');
       } catch (error) {
-        window.alert(error.message);
+        window.alert(getErrorMessage(error));
       }
     });
   });
@@ -728,7 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.alert(payload.message || 'Transaction deleted.');
         window.location.reload();
       } catch (error) {
-        window.alert(error.message);
+        window.alert(getErrorMessage(error));
       }
     });
   });
@@ -743,7 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
         button.closest('.admin-user-row')?.remove();
         showNotice('Client hidden from the admin dashboard. Their account remains active.');
       } catch (error) {
-        showNotice(error.message, 'error');
+        showNotice(getErrorMessage(error), 'error');
       }
     });
   });
