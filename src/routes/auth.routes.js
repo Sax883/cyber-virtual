@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { getAdminCredentials } = require('../config/admin');
+const { establishSession } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -55,14 +56,14 @@ router.post('/signup', async (req, res) => {
       role: 'user',
     });
 
-    req.session.user = {
+    await establishSession(req, {
       id: user._id,
       name: user.name,
       email: user.email,
       preferredRegion: user.preferredRegion,
       role: user.role,
       creditBalance: user.creditBalance,
-    };
+    });
 
     return res.redirect('/dashboard');
   } catch (error) {
@@ -92,14 +93,14 @@ router.post('/login', async (req, res) => {
         });
       }
 
-      req.session.user = {
+      await establishSession(req, {
         id: adminUser._id,
         name: adminUser.name,
         email: adminUser.email,
         preferredRegion: adminUser.preferredRegion,
         role: 'admin',
         creditBalance: adminUser.creditBalance || 0,
-      };
+      });
       return res.redirect('/admin');
     }
 
@@ -113,14 +114,14 @@ router.post('/login', async (req, res) => {
       return res.status(401).render('auth', { user: req.session.user || null, mode: 'login', error: 'Invalid credentials.' });
     }
 
-    req.session.user = {
+    await establishSession(req, {
       id: user._id,
       name: user.name,
       email: user.email,
       preferredRegion: user.preferredRegion,
       role: user.role,
       creditBalance: user.creditBalance,
-    };
+    });
 
     return res.redirect('/dashboard');
   } catch (error) {

@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const SupportMessage = require('../models/SupportMessage');
 const { ensureAuthenticated } = require('../middleware/auth');
+const { establishSession } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/admin');
 const { getOpaySettings } = require('../services/settingsService');
 const { getAdminCredentials } = require('../config/admin');
@@ -66,14 +67,14 @@ router.post('/login', async (req, res) => {
     });
   }
 
-  req.session.user = {
+  await establishSession(req, {
     id: adminUser._id,
     name: adminUser.name || 'Cyber Virtual Admin',
     email: adminUser.email,
     preferredRegion: adminUser.preferredRegion || '',
     role: 'admin',
     creditBalance: adminUser.creditBalance || 0,
-  };
+  });
 
   return res.redirect('/admin/dashboard');
 });
