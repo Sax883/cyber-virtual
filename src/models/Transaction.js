@@ -28,6 +28,10 @@ const transactionSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  referralCreditApplied: {
+    type: Boolean,
+    default: false,
+  },
   package_name: {
     type: String,
     default: '',

@@ -67,6 +67,7 @@
 
             <form method="POST" action="<%= mode === 'login' ? '/auth/login' : '/auth/signup' %>" class="space-y-5">
               <% if (mode === 'signup') { %>
+                <input type="hidden" name="referralCode" value="<%= referralCode || '' %>" />
                 <div>
                   <label for="name" class="mb-2 block text-sm font-medium text-slate-700">Name</label>
                   <input id="name" name="name" type="text" required maxlength="100" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none ring-0 transition focus:border-emerald-500 focus:bg-white" placeholder="Your full name" />

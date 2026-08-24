@@ -79,6 +79,8 @@ router.get('/', async (req, res) => {
 async function renderDashboard(req, res, page = 'services') {
   try {
     const user = await getCurrentUser(req);
+    const referralCode = user?.referralCode || user?._id?.toString() || req.session.user.id;
+    const referralLink = `${req.protocol}://${req.get('host')}/auth/signup?ref=${encodeURIComponent(referralCode)}`;
     const activeNumbers = isValidObjectId(req.session.user.id)
       ? await ActiveNumber.find({ user_id: req.session.user.id }).sort({ createdAt: -1 }).lean()
       : [];
@@ -91,7 +93,7 @@ async function renderDashboard(req, res, page = 'services') {
     const [countries, services] = await Promise.all([getAvailableCountries(), getAvailableServices()]);
 
     res.render('dashboard', {
-      user: { ...req.session.user, name: user?.name || req.session.user.name || '', preferredRegion: user?.preferredRegion || '', creditBalance: user ? user.creditBalance : 0 },
+      user: { ...req.session.user, name: user?.name || req.session.user.name || '', preferredRegion: user?.preferredRegion || '', creditBalance: user ? user.creditBalance : 0, referralLink },
       activeNumbers,
       page,
       opaySettings,

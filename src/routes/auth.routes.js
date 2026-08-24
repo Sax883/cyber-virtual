@@ -5,16 +5,25 @@ const { getAdminCredentials } = require('../config/admin');
 
 const router = express.Router();
 
+function getReferralCode(value) {
+  return String(value || '').trim();
+}
+
+function isValidObjectId(value) {
+  return /^[0-9a-fA-F]{24}$/.test(String(value || ''));
+}
+
 router.get('/login', (req, res) => {
   res.render('auth', { user: req.session.user || null, mode: 'login', error: null });
 });
 
 router.get('/signup', (req, res) => {
-  res.render('auth', { user: req.session.user || null, mode: 'signup', error: null });
+  res.render('auth', { user: req.session.user || null, mode: 'signup', referralCode: getReferralCode(req.query.ref), error: null });
 });
 
 router.post('/signup', async (req, res) => {
   const { name, email, password } = req.body;
+  const referralCode = getReferralCode(req.body.referralCode || req.body.ref);
 
   if (!name || !email || !password) {
     return res.status(400).render('auth', { user: req.session.user || null, mode: 'signup', error: 'Name, email, and password are required.' });
@@ -27,11 +36,22 @@ router.post('/signup', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    let referredBy = null;
+    if (referralCode) {
+      const referrer = await User.findOne({ referralCode }).select('_id')
+        || (isValidObjectId(referralCode) ? await User.findById(referralCode).select('_id') : null);
+      if (!referrer) {
+        return res.status(400).render('auth', { user: req.session.user || null, mode: 'signup', referralCode, error: 'Invalid referral link.' });
+      }
+      referredBy = referrer._id;
+    }
+
     const user = await User.create({
       name: name.trim(),
       email: email.toLowerCase(),
       passwordHash,
       creditBalance: 0,
+      referredBy,
       role: 'user',
     });
 

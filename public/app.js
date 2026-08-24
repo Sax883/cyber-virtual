@@ -288,6 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
     button.addEventListener('click', () => copyText(button.dataset.phone, 'Assigned number copied to clipboard.'));
   });
 
+  document.getElementById('copyReferralLink')?.addEventListener('click', () => {
+    const referralLink = document.getElementById('referralLink')?.value || '';
+    copyText(referralLink, 'Referral link copied to clipboard.');
+  });
+
   document.querySelectorAll('.delete-number-btn').forEach((button) => {
     button.addEventListener('click', async () => {
       if (!window.confirm('Cancel this number session?')) return;

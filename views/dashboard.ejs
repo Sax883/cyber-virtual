@@ -53,6 +53,20 @@
         </div>
       </header>
 
+      <section class="mb-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-[0.18em] text-emerald-700">Referral rewards</p>
+            <h2 class="mt-1 text-lg font-bold text-slate-900">Invite a client</h2>
+            <p class="mt-1 text-sm text-slate-600">Earn 1 credit when their first approved purchase is confirmed.</p>
+          </div>
+          <div class="flex w-full gap-2 sm:max-w-xl">
+            <input id="referralLink" type="text" readonly value="<%= user.referralLink || '' %>" class="min-w-0 flex-1 rounded-2xl border border-emerald-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none" />
+            <button id="copyReferralLink" type="button" class="rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Copy link</button>
+          </div>
+        </div>
+      </section>
+
       <aside id="menuPanel" class="menu-panel fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-200 bg-white p-5 shadow-xl md:hidden">
         <div class="mb-6 flex items-center justify-between">
           <div class="flex items-center gap-3">

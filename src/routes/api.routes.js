@@ -534,6 +534,15 @@ router.post('/admin/transactions/:id/approve', ensureAuthenticated, ensureAdmin,
   user.creditBalance += credits;
   await user.save();
 
+  if (user.referredBy && !transaction.referralCreditApplied) {
+    const referrer = await User.findById(user.referredBy);
+    if (referrer && referrer._id.toString() !== user._id.toString()) {
+      referrer.creditBalance += 1;
+      await referrer.save();
+      transaction.referralCreditApplied = true;
+    }
+  }
+
   transaction.status = 'completed';
   transaction.credits = credits;
   transaction.creditsApplied = true;

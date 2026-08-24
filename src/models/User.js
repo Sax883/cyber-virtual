@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -21,6 +22,17 @@ const userSchema = new mongoose.Schema({
   creditBalance: {
     type: Number,
     default: 0,
+  },
+  referralCode: {
+    type: String,
+    unique: true,
+    sparse: true,
+    default: () => `ref_${crypto.randomBytes(8).toString('hex')}`,
+  },
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,
   },
   preferredRegion: {
     type: String,
