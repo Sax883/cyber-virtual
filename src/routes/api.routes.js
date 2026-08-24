@@ -529,22 +529,22 @@ router.post('/admin/transactions/:id/approve', ensureAuthenticated, ensureAdmin,
     return res.status(404).json({ message: 'User not found.' });
   }
 
-  const credits = getTransactionCredits(transaction);
+  const purchasedCredits = getTransactionCredits(transaction);
   if (!user.name) user.name = user.email.split('@')[0];
-  user.creditBalance += credits;
+  user.creditBalance = Number(user.creditBalance || 0) + purchasedCredits;
   await user.save();
 
   if (user.referredBy && !transaction.referralCreditApplied) {
     const referrer = await User.findById(user.referredBy);
     if (referrer && referrer._id.toString() !== user._id.toString()) {
-      referrer.creditBalance += 1;
+      referrer.creditBalance = Number(referrer.creditBalance || 0) + 1;
       await referrer.save();
       transaction.referralCreditApplied = true;
     }
   }
 
   transaction.status = 'completed';
-  transaction.credits = credits;
+  transaction.credits = purchasedCredits;
   transaction.creditsApplied = true;
   transaction.approved_by = req.session.user.email;
   transaction.approved_at = new Date();
