@@ -95,6 +95,258 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const boostResult = (element, message, isError = false) => {
+    if (!element) return;
+    element.className = `mt-4 rounded-2xl border p-3 text-sm ${isError ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`;
+    element.textContent = message;
+  };
+
+  const escapeHtml = (value) => String(value || '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+
+  const formatNaira = (amount) => `₦${Number(amount || 0).toLocaleString()}`;
+  const quoteRequestVersions = {};
+  const updateBoostQuote = async (prefix) => {
+    const platform = document.getElementById(`${prefix}Platform`)?.value;
+    const service = document.getElementById(`${prefix}Service`)?.value;
+    const quantity = document.getElementById(`${prefix}Quantity`)?.value;
+    const requestVersion = (quoteRequestVersions[prefix] || 0) + 1;
+    quoteRequestVersions[prefix] = requestVersion;
+    let quote = { amount: 0, credits: 0 };
+    const price = document.getElementById(`${prefix}Price`);
+    if (price && platform && service && quantity) price.textContent = 'Updating...';
+    if (platform && quantity) {
+      try {
+        const response = await fetch(`/api/boost/quote?platform=${encodeURIComponent(platform)}&service=${encodeURIComponent(service)}&quantity=${encodeURIComponent(quantity)}`, { cache: 'no-store' });
+        if (response.ok) quote = await response.json();
+      } catch (error) {
+        console.debug('Boost quote unavailable');
+      }
+    }
+    if (quoteRequestVersions[prefix] !== requestVersion) return quote;
+    const credits = document.getElementById(`${prefix}Credits`);
+    if (price) price.textContent = formatNaira(quote.amount);
+    if (credits) credits.textContent = quote.amount ? `(${quote.credits} credit${quote.credits === 1 ? '' : 's'} when paying from balance)` : '';
+    return quote;
+  };
+
+  const submitBoost = async ({ endpoint, platform, service, target, quantity, email = '', paymentReference = '', proofOfPayment = '' }) => {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform, service, target, quantity, email, paymentReference, proofOfPayment }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.message || 'Unable to submit boost campaign.');
+    return payload;
+  };
+
+  const readProofOfPayment = (input) => new Promise((resolve, reject) => {
+    const file = input?.files?.[0];
+    if (!file) return resolve('');
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      return reject(new Error('Proof of payment must be a PNG, JPG, or WebP image under 5 MB.'));
+    }
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Unable to read proof of payment.'));
+    return reader.readAsDataURL(file);
+  });
+
+  const showBoostSuccess = () => {
+    const modal = document.getElementById('boostSuccessModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+
+  const clearBoostInput = (id) => {
+    const input = document.getElementById(id);
+    if (input) input.value = '';
+  };
+
+  document.getElementById('boostSuccessOk')?.addEventListener('click', () => {
+    const modal = document.getElementById('boostSuccessModal');
+    const guestForm = document.getElementById('guestBoostForm');
+    const clientForm = document.getElementById('boostOrderForm');
+    guestForm?.reset();
+    clientForm?.reset();
+    document.getElementById('guestBoostPayment')?.classList.add('hidden');
+    document.getElementById('manualBoostPayment')?.classList.add('hidden');
+    clearBoostInput('guestPaymentReference');
+    clearBoostInput('guestProofOfPayment');
+    clearBoostInput('boostPaymentReference');
+    clearBoostInput('boostProofOfPayment');
+    document.getElementById('guestPaymentSubmit')?.removeAttribute('disabled');
+    document.getElementById('manualBoostSubmit')?.removeAttribute('disabled');
+    modal?.classList.add('hidden');
+    modal?.classList.remove('flex');
+    (guestForm || clientForm)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  ['guestBoostPlatform', 'guestBoostService', 'guestBoostQuantity'].forEach((id) => ['input', 'change'].forEach((eventName) => document.getElementById(id)?.addEventListener(eventName, () => updateBoostQuote('guestBoost'))));
+  ['boostPlatform', 'boostService', 'boostQuantity'].forEach((id) => ['input', 'change'].forEach((eventName) => document.getElementById(id)?.addEventListener(eventName, () => updateBoostQuote('boost'))));
+  updateBoostQuote('guestBoost');
+  updateBoostQuote('boost');
+
+  let guestBoostDetails = null;
+  document.getElementById('guestBoostForm')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    guestBoostDetails = {
+      platform: document.getElementById('guestBoostPlatform').value,
+      service: document.getElementById('guestBoostService').value,
+      target: document.getElementById('guestBoostTarget').value.trim(),
+      quantity: Number(document.getElementById('guestBoostQuantity').value),
+      email: document.getElementById('guestBoostEmail').value.trim(),
+    };
+    const result = document.getElementById('guestBoostResult');
+    const quote = await updateBoostQuote('guestBoost');
+    document.getElementById('guestPaymentAmount').textContent = formatNaira(quote.amount);
+    document.getElementById('guestBoostPayment').classList.remove('hidden');
+    result.classList.add('hidden');
+    document.getElementById('guestBoostPayment').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  document.getElementById('guestPaymentSubmit')?.addEventListener('click', async () => {
+    try {
+      const proofOfPayment = await readProofOfPayment(document.getElementById('guestProofOfPayment'));
+      const payload = await submitBoost({ ...guestBoostDetails, endpoint: '/api/boost/guest', paymentReference: document.getElementById('guestPaymentReference').value.trim(), proofOfPayment });
+      document.getElementById('guestPaymentSubmit').disabled = true;
+      showBoostSuccess();
+    } catch (error) {
+      showNotice(getErrorMessage(error), 'error');
+    }
+  });
+
+  const renderBoostOrders = (orders) => {
+    const container = document.getElementById('boostOrders');
+    if (!container) return;
+    if (!orders.length) {
+      container.innerHTML = '<p class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">No campaigns yet.</p>';
+      return;
+    }
+    container.innerHTML = orders.map((order) => `<article class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div class="flex flex-wrap items-center justify-between gap-2"><div><p class="font-semibold text-slate-900">${escapeHtml(order.platform)} ${escapeHtml(order.service)}</p><p class="mt-1 text-xs text-slate-500">${escapeHtml(order.target)} · ${Number(order.quantity).toLocaleString()} units</p></div><span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">${escapeHtml(order.status.replace('_', ' '))}</span></div><div class="mt-3 flex items-center justify-between text-sm text-slate-700"><span>Progress</span><strong>${Number(order.delivered || 0).toLocaleString()} / ${Number(order.quantity).toLocaleString()}</strong></div><p class="mt-2 text-xs text-slate-500">${order.credits} credit${order.credits === 1 ? '' : 's'} · ${new Date(order.createdAt).toLocaleString()}</p></article>`).join('');
+  };
+
+  const loadBoostOrders = async () => {
+    const container = document.getElementById('boostOrders');
+    if (!container) return;
+    try {
+      const response = await fetch('/api/boost/orders', { cache: 'no-store' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || 'Unable to load campaigns.');
+      if (!Array.isArray(payload)) throw new Error('Unable to load campaigns.');
+      renderBoostOrders(payload);
+    } catch (error) {
+      container.innerHTML = `<p class="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">${getErrorMessage(error)}</p>`;
+    }
+  };
+
+  document.getElementById('boostOrderForm')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      const payload = await submitBoost({ endpoint: '/api/boost/orders', platform: document.getElementById('boostPlatform').value, service: document.getElementById('boostService').value, target: document.getElementById('boostTarget').value.trim(), quantity: Number(document.getElementById('boostQuantity').value) });
+      showNotice(`${payload.message} ${payload.balance} credits remaining.`);
+      event.target.reset();
+      loadBoostOrders();
+      document.querySelector('[data-credit-balance]')?.replaceChildren(document.createTextNode(payload.balance));
+    } catch (error) {
+      showNotice(getErrorMessage(error), 'error');
+    }
+  });
+  document.getElementById('refreshBoostOrders')?.addEventListener('click', loadBoostOrders);
+  if (document.getElementById('boostOrders')) loadBoostOrders();
+  if (document.getElementById('boostOrders')) window.setInterval(loadBoostOrders, 10000);
+
+  document.getElementById('manualBoostToggle')?.addEventListener('click', () => document.getElementById('manualBoostPayment')?.classList.toggle('hidden'));
+  document.getElementById('manualBoostToggle')?.addEventListener('click', () => {
+    updateBoostQuote('boost').then((quote) => { document.getElementById('manualBoostAmount').textContent = formatNaira(quote.amount); });
+  });
+  document.getElementById('manualBoostSubmit')?.addEventListener('click', async () => {
+    try {
+      const proofOfPayment = await readProofOfPayment(document.getElementById('boostProofOfPayment'));
+      const payload = await submitBoost({ endpoint: '/api/boost/orders/manual', platform: document.getElementById('boostPlatform').value, service: document.getElementById('boostService').value, target: document.getElementById('boostTarget').value.trim(), quantity: Number(document.getElementById('boostQuantity').value), paymentReference: document.getElementById('boostPaymentReference').value.trim(), proofOfPayment });
+      document.getElementById('manualBoostSubmit').disabled = true;
+      loadBoostOrders();
+      showBoostSuccess();
+    } catch (error) {
+      showNotice(getErrorMessage(error), 'error');
+    }
+  });
+
+  const bindAdminBoostStatus = () => {
+    document.querySelectorAll('.admin-boost-status').forEach((select) => {
+      select.onchange = async () => {
+        await fetch(`/api/boost/admin/orders/${select.dataset.boostId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: select.value }) });
+      };
+    });
+  };
+  const bindAdminBoostConfirm = () => {
+    document.querySelectorAll('.confirm-boost-btn').forEach((button) => {
+      button.onclick = async () => {
+        button.disabled = true;
+        try {
+          const response = await fetch(`/api/boost/admin/orders/${button.dataset.boostId}/confirm`, { method: 'POST' });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.message || 'Unable to trigger JAP campaign.');
+          showNotice(payload.message || 'Payment confirmed and JAP campaign triggered.');
+          loadAdminBoostOrders();
+        } catch (error) {
+          showNotice(getErrorMessage(error), 'error');
+          button.disabled = false;
+        }
+      };
+    });
+  };
+  const loadAdminBoostOrders = async () => {
+    const container = document.getElementById('adminBoostOrders');
+    if (!container) return;
+    const response = await fetch('/api/boost/admin/orders', { cache: 'no-store' });
+    if (!response.ok) return;
+    const orders = await response.json();
+    container.innerHTML = orders.length ? `<table class="min-w-full text-left text-sm"><thead><tr class="border-b border-slate-200 text-slate-600"><th class="py-3 pr-4">Client</th><th class="py-3 pr-4">Platform / service</th><th class="py-3 pr-4">Target / quantity</th><th class="py-3 pr-4">Total</th><th class="py-3 pr-4">Reference</th><th class="py-3 pr-4">Proof</th><th class="py-3 pr-4">Status</th><th class="py-3 pr-4">Actions</th></tr></thead><tbody>${orders.map((order) => `<tr class="admin-boost-order border-b border-slate-100" data-boost-id="${escapeHtml(order._id)}"><td class="py-3 pr-4">${escapeHtml(order.user_id?.email || order.guestEmail || 'Guest checkout')}</td><td class="py-3 pr-4">${escapeHtml(order.platform)}<br><span class="text-xs text-slate-500">${escapeHtml(order.service)}</span></td><td class="py-3 pr-4">${escapeHtml(order.target)}<br><span class="text-xs text-slate-500">${Number(order.quantity).toLocaleString()} units</span></td><td class="py-3 pr-4">₦${Number(order.amount || 0).toLocaleString()}</td><td class="py-3 pr-4">${escapeHtml(order.paymentReference || 'None')}</td><td class="py-3 pr-4">${order.proofOfPayment ? `<a href="${escapeHtml(order.proofOfPayment)}" target="_blank" rel="noreferrer" class="text-emerald-700 underline">View proof</a>` : '<span class="text-slate-500">None</span>'}</td><td class="py-3 pr-4"><span data-boost-status class="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">${escapeHtml(order.status.replace('_', ' '))}</span><br><span class="text-xs text-slate-500">${Number(order.delivered || 0).toLocaleString()} / ${Number(order.quantity).toLocaleString()}</span></td><td class="py-3 pr-4"><div class="flex flex-wrap gap-2"><button type="button" class="confirm-boost-btn rounded-xl bg-emerald-500 px-3 py-2 text-xs font-semibold text-white" data-boost-id="${escapeHtml(order._id)}">Confirm &amp; Trigger JAP</button><button type="button" class="admin-boost-action rounded-xl bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-700" data-boost-id="${escapeHtml(order._id)}" data-status="pending_payment">Keep Pending</button><button type="button" class="admin-boost-action rounded-xl bg-sky-100 px-3 py-2 text-xs font-semibold text-sky-700" data-boost-id="${escapeHtml(order._id)}" data-status="queued">Queue</button><button type="button" class="admin-boost-action rounded-xl bg-rose-100 px-3 py-2 text-xs font-semibold text-rose-700" data-boost-id="${escapeHtml(order._id)}" data-status="failed">Mark Failed</button><button type="button" class="delete-admin-boost rounded-xl bg-slate-200 px-3 py-2 text-xs font-semibold text-slate-700" data-boost-id="${escapeHtml(order._id)}">Delete</button></div></td></tr>`).join('')}</tbody></table>` : '<p class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">No boost campaigns yet.</p>';
+    bindAdminBoostStatus();
+    bindAdminBoostConfirm();
+    document.querySelectorAll('.admin-boost-action').forEach((button) => {
+      button.onclick = async () => {
+        const response = await fetch(`/api/boost/admin/orders/${button.dataset.boostId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: button.dataset.status }) });
+        if (!response.ok) return showNotice('Unable to update boost request.', 'error');
+        loadAdminBoostOrders();
+      };
+    });
+    document.querySelectorAll('.delete-admin-boost').forEach((button) => {
+      button.onclick = async () => {
+        const response = await fetch(`/api/boost/admin/orders/${button.dataset.boostId}`, { method: 'DELETE' });
+        if (!response.ok) return showNotice('Unable to delete boost request.', 'error');
+        loadAdminBoostOrders();
+      };
+    });
+  };
+  bindAdminBoostStatus();
+  bindAdminBoostConfirm();
+  const adminBoostContainer = document.getElementById('adminBoostOrders');
+  adminBoostContainer?.addEventListener('click', async (event) => {
+    const button = event.target.closest('.admin-boost-action, .delete-admin-boost');
+    if (!button || button.onclick) return;
+    try {
+      const method = button.classList.contains('delete-admin-boost') ? 'DELETE' : 'PATCH';
+      const options = { method };
+      if (method === 'PATCH') {
+        options.headers = { 'Content-Type': 'application/json' };
+        options.body = JSON.stringify({ status: button.dataset.status });
+      }
+      const response = await fetch(`/api/boost/admin/orders/${button.dataset.boostId}`, options);
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || 'Unable to update boost request.');
+      showNotice(payload.message || 'Boost request updated.');
+      loadAdminBoostOrders();
+    } catch (error) {
+      showNotice(getErrorMessage(error), 'error');
+    }
+  });
+  document.getElementById('refreshAdminBoosts')?.addEventListener('click', loadAdminBoostOrders);
+  if (adminBoostContainer) loadAdminBoostOrders();
+  if (document.getElementById('adminBoostOrders')) window.setInterval(loadAdminBoostOrders, 10000);
+
   const hydrateOpayDetails = () => {
     const bankEl = document.querySelector('[data-opay-field="bank"]');
     const accountNumberEl = document.querySelector('[data-opay-field="accountNumber"]');
@@ -118,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const selectService = (row) => {
+    if (document.getElementById('adminBoostOrders')) loadAdminBoostOrders();
     serviceRows.forEach((serviceRow) => serviceRow.classList.remove('bg-emerald-50', 'text-emerald-700'));
     row.classList.add('bg-emerald-50', 'text-emerald-700');
     serviceSearch.value = row.dataset.serviceName;
@@ -378,6 +631,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('copyOpayAccount')?.addEventListener('click', () => {
     copyText(opaySettings.accountNumber, 'OPay account number copied to clipboard.');
+  });
+
+  document.getElementById('copyGuestAccount')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    try {
+      await navigator.clipboard.writeText(button.dataset.accountNumber || '');
+      const originalText = button.textContent;
+      button.textContent = 'Copied!';
+      window.setTimeout(() => { button.textContent = originalText; }, 1600);
+    } catch (error) {
+      showNotice('Copy failed. Please copy the account number manually.', 'error');
+    }
   });
 
   document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {

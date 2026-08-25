@@ -3,6 +3,9 @@ function ensureAuthenticated(req, res, next) {
     return next();
   }
 
+  if (req.path.startsWith('/api/') || req.originalUrl.startsWith('/api/')) {
+    return res.status(401).json({ message: 'Authentication required.' });
+  }
   return res.redirect('/auth/login');
 }
 

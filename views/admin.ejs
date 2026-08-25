@@ -200,9 +200,23 @@
             </table>
           </div>
         </section>
+
+        <section class="mt-6 rounded-3xl border border-emerald-200 bg-white p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div><p class="text-xs uppercase tracking-[0.18em] text-emerald-700">Social campaigns</p><h2 class="mt-1 text-lg font-bold">Boost order queue</h2></div>
+            <button type="button" id="refreshAdminBoosts" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Refresh queue</button>
+          </div>
+          <div id="adminBoostOrders" class="mt-4 overflow-x-auto">
+            <% if (!boostOrders || !boostOrders.length) { %><p class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">No boost campaigns yet.</p><% } else { %>
+              <table class="min-w-full text-left text-sm"><thead><tr class="border-b border-slate-200 text-slate-600"><th class="py-3 pr-4">Client</th><th class="py-3 pr-4">Platform / service</th><th class="py-3 pr-4">Target / quantity</th><th class="py-3 pr-4">Total</th><th class="py-3 pr-4">Reference</th><th class="py-3 pr-4">Proof</th><th class="py-3 pr-4">Status</th><th class="py-3 pr-4">Action</th></tr></thead><tbody>
+                <% boostOrders.forEach((order) => { %><tr class="admin-boost-order border-b border-slate-100" data-boost-id="<%= order._id %>"><td class="py-3 pr-4"><%= order.user_id?.email || order.guestEmail || 'Guest checkout' %></td><td class="py-3 pr-4"><%= order.platform %><br /><span class="text-xs text-slate-500"><%= order.service %></span></td><td class="py-3 pr-4"><%= order.target %><br /><span class="text-xs text-slate-500"><%= Number(order.quantity).toLocaleString() %> units</span></td><td class="py-3 pr-4">₦<%= Number(order.amount || 0).toLocaleString() %></td><td class="py-3 pr-4"><%= order.paymentReference || 'None' %></td><td class="py-3 pr-4"><% if (order.proofOfPayment) { %><a href="<%= order.proofOfPayment %>" target="_blank" rel="noreferrer" class="text-emerald-700 underline">View proof</a><% } else { %><span class="text-slate-500">None</span><% } %></td><td class="py-3 pr-4"><span data-boost-status class="rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700"><%= order.status.replace('_', ' ') %></span><br /><span class="text-xs text-slate-500"><%= Number(order.delivered || 0).toLocaleString() %> / <%= Number(order.quantity).toLocaleString() %></span></td><td class="py-3 pr-4"><div class="flex flex-wrap gap-2"><% if (order.status === 'pending_payment') { %><button type="button" class="confirm-boost-btn rounded-xl bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600" data-boost-id="<%= order._id %>">Confirm &amp; Trigger JAP</button><% } %><button type="button" class="admin-boost-action rounded-xl bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-700" data-boost-id="<%= order._id %>" data-status="pending_payment">Keep Pending</button><button type="button" class="admin-boost-action rounded-xl bg-sky-100 px-3 py-2 text-xs font-semibold text-sky-700" data-boost-id="<%= order._id %>" data-status="queued">Queue</button><button type="button" class="admin-boost-action rounded-xl bg-rose-100 px-3 py-2 text-xs font-semibold text-rose-700" data-boost-id="<%= order._id %>" data-status="failed">Mark Failed</button><button type="button" class="delete-admin-boost rounded-xl bg-slate-200 px-3 py-2 text-xs font-semibold text-slate-700" data-boost-id="<%= order._id %>">Delete</button></div></td></tr><% }); %>
+              </tbody></table>
+            <% } %>
+          </div>
+        </section>
       </div>
     <% } %>
 
-    <script src="/app.js"></script>
+    <script src="/app.js?v=boost3"></script>
   </body>
 </html>
