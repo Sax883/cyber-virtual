@@ -13,6 +13,7 @@ const dashboardRoutes = require('./routes/dashboard.routes');
 const adminRoutes = require('./routes/admin.routes');
 const purchaseRoutes = require('./routes/purchases.routes');
 const apiRoutes = require('./routes/api.routes');
+const boostRoutes = require('./routes/boost.routes');
 
 const app = express();
 
@@ -38,7 +39,7 @@ app.use(helmet({
   contentSecurityPolicy: false,
 }));
 app.use(morgan('dev'));
-app.use(express.json());
+app.use(express.json({ limit: '8mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../')));
 app.use(express.static(path.join(__dirname, '../public')));
@@ -83,6 +84,7 @@ app.use((req, res, next) => {
 app.use('/', dashboardRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/purchases', purchaseRoutes);
+app.use('/api/boost', boostRoutes);
 app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/purchases', purchaseRoutes);

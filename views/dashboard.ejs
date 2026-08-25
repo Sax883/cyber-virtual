@@ -80,6 +80,7 @@
         </div>
         <nav class="space-y-2">
           <a href="/dashboard/services" class="block rounded-2xl <%= page === 'services' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Services</a>
+          <a href="/dashboard/boost" class="block rounded-2xl <%= page === 'boost' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Social Boost</a>
           <a href="/dashboard/numbers" class="block rounded-2xl <%= page === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Active Numbers</a>
           <a href="/dashboard/purchases" class="block rounded-2xl <%= page === 'purchases' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Purchases</a>
           <a href="/dashboard/profile" class="block rounded-2xl <%= page === 'profile' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' %> px-4 py-3 font-medium">Profile Settings</a>
@@ -197,6 +198,39 @@
               <% }); %>
             <% } %>
           </div>
+        </main>
+      <% } %>
+
+      <% if (page === 'boost') { %>
+        <main class="space-y-6 pb-24">
+          <section class="overflow-hidden rounded-3xl border border-emerald-200 bg-emerald-50 shadow-sm">
+            <div class="grid items-center gap-6 p-6 md:grid-cols-[1fr_220px] md:p-8">
+              <div>
+                <p class="text-xs uppercase tracking-[0.18em] text-emerald-700">Campaign studio</p>
+                <h2 class="mt-2 text-3xl font-black text-slate-900">Social Media Boosting</h2>
+                <p class="mt-3 max-w-xl text-slate-600">Launch a focused campaign for TikTok, Facebook, Instagram, Snapchat, or Telegram. Followers, likes, and comments are priced at 1 credit per 1,000 units.</p>
+              </div>
+              <img src="/Tiktok%202.jpeg" alt="Social media campaign" class="h-40 w-full rounded-2xl object-cover shadow-sm" />
+            </div>
+          </section>
+
+          <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="mb-5 flex items-center justify-between gap-3">
+              <div><p class="text-xs uppercase tracking-[0.18em] text-slate-500">New campaign</p><h3 class="mt-1 text-xl font-bold text-slate-900">Choose your boost</h3></div>
+              <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"><%= user.creditBalance %> credits available</span>
+            </div>
+            <form id="boostOrderForm" class="grid gap-4 md:grid-cols-2">
+              <div><label for="boostPlatform" class="mb-2 block text-sm font-medium text-slate-700">Platform</label><select id="boostPlatform" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-emerald-500"><option value="">Select platform</option><option>TikTok</option><option>Facebook</option><option>Instagram</option><option>Snapchat</option><option>Telegram</option></select></div>
+              <div><label for="boostService" class="mb-2 block text-sm font-medium text-slate-700">Service</label><select id="boostService" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-emerald-500"><option value="">Select service</option><option>Followers</option><option>Likes</option><option>Comments</option></select></div>
+              <div class="md:col-span-2"><label for="boostTarget" class="mb-2 block text-sm font-medium text-slate-700">Profile URL or username</label><input id="boostTarget" type="text" required maxlength="500" placeholder="https://www.tiktok.com/@yourname" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-emerald-500" /></div>
+              <div><label for="boostQuantity" class="mb-2 block text-sm font-medium text-slate-700">Quantity</label><input id="boostQuantity" type="number" min="100" max="100000" step="100" value="1000" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-emerald-500" /></div>
+              <div class="flex items-end"><button type="submit" class="w-full rounded-2xl bg-emerald-500 px-5 py-3 font-semibold text-white hover:bg-emerald-600">Start with credits</button></div>
+            </form>
+            <div class="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-slate-700">Estimated total: <strong id="boostPrice">₦0</strong> <span id="boostCredits" class="text-slate-500"></span></div>
+            <div class="mt-4 border-t border-slate-200 pt-4"><p class="text-sm font-semibold text-slate-900">Prefer manual transfer?</p><button id="manualBoostToggle" type="button" class="mt-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-700">Use bank transfer instead</button><div id="manualBoostPayment" class="mt-3 hidden rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><p class="text-sm text-slate-700">Transfer <strong id="manualBoostAmount">₦0</strong> to <strong><%= opaySettings.bank %> <%= opaySettings.accountNumber %></strong> (<%= opaySettings.accountName %>), then enter your reference.</p><input id="boostPaymentReference" type="text" maxlength="200" placeholder="Transfer reference (optional)" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm" /><label for="boostProofOfPayment" class="mt-3 block text-sm font-medium text-slate-700">Proof of payment (optional)</label><input id="boostProofOfPayment" type="file" accept="image/png,image/jpeg,image/webp" class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm" /><button id="manualBoostSubmit" type="button" class="mt-3 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white">I have sent my payment</button></div></div>
+          </section>
+
+          <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><div class="mb-4 flex items-center justify-between"><div><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Campaigns</p><h3 class="mt-1 text-xl font-bold text-slate-900">Order tracker</h3></div><button id="refreshBoostOrders" type="button" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">Refresh</button></div><div id="boostOrders" class="grid gap-3"><p class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">Loading campaigns...</p></div></section>
         </main>
       <% } %>
 
@@ -349,11 +383,18 @@
       <% } %>
     </div>
 
+    <div id="boostSuccessModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4">
+      <div class="w-full max-w-sm rounded-3xl border border-emerald-200 bg-white p-6 text-center shadow-2xl">
+        <p class="text-lg font-bold text-emerald-700">Payment successful, awaiting confirmation</p>
+        <button id="boostSuccessOk" type="button" class="mt-5 rounded-2xl bg-emerald-500 px-6 py-3 font-semibold text-white hover:bg-emerald-600">OK</button>
+      </div>
+    </div>
+
     <div id="checkoutModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4">
       <div class="w-full max-w-lg rounded-3xl bg-white p-5 shadow-2xl">
         <div class="mb-5 flex items-center justify-between">
           <div>
-            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Manual payment</p>
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Checkout payment</p>
             <h3 class="mt-1 text-2xl font-bold text-slate-900">Payment Checkout</h3>
           </div>
           <button type="button" id="closeCheckoutModal" class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-medium text-slate-700">Close</button>
@@ -394,11 +435,12 @@
     <div id="workflowNotice" class="fixed right-4 top-4 z-[60] hidden max-w-sm rounded-2xl border border-emerald-200 bg-white p-4 text-sm text-slate-700 shadow-2xl"></div>
 
     <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-30 hidden border-t border-slate-200 bg-white md:block">
-      <div class="mx-auto grid max-w-6xl grid-cols-5 gap-1 px-2 py-2 text-center text-xs font-medium text-slate-600">
+      <div class="mx-auto grid max-w-6xl grid-cols-6 gap-1 px-2 py-2 text-center text-xs font-medium text-slate-600">
         <a href="/dashboard/services" class="rounded-2xl <%= page === 'services' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600' %> px-2 py-3">
           <div class="text-lg">◌</div>
           <span>Services</span>
         </a>
+        <a href="/dashboard/boost" class="rounded-2xl <%= page === 'boost' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600' %> px-2 py-3"><div class="text-lg">✦</div><span>Boost</span></a>
         <a href="/dashboard/numbers" class="rounded-2xl <%= page === 'active' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600' %> px-2 py-3">
           <div class="text-lg">◍</div>
           <span>Active Numbers</span>
@@ -418,6 +460,6 @@
       </div>
     </nav>
 
-    <script src="/app.js"></script>
+    <script src="/app.js?v=boost3"></script>
   </body>
 </html>

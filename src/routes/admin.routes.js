@@ -8,6 +8,7 @@ const { establishSession } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/admin');
 const { getOpaySettings } = require('../services/settingsService');
 const { getAdminCredentials } = require('../config/admin');
+const BoostOrder = require('../models/BoostOrder');
 
 const router = express.Router();
 
@@ -100,6 +101,7 @@ router.get('/dashboard', ensureAuthenticated, requireAdmin, async (req, res) => 
   }, []);
   const opaySettings = await getOpaySettings();
   const supportMessages = await SupportMessage.find({ user_id: { $in: visibleUserIds } }).populate('user_id', 'name email').sort({ updatedAt: -1 }).lean();
+  const boostOrders = await BoostOrder.find().populate('user_id', 'name email').sort({ createdAt: -1 }).limit(100).lean();
 
   res.render('admin', {
     page: 'dashboard',
@@ -108,6 +110,7 @@ router.get('/dashboard', ensureAuthenticated, requireAdmin, async (req, res) => 
     transactions,
     transactionGroups,
     supportMessages,
+    boostOrders,
     opaySettings,
     error: null,
   });

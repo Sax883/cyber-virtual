@@ -73,6 +73,7 @@ router.get('/', async (req, res) => {
     user: req.session?.user || null,
     countries,
     pricing: countryPricing,
+    opaySettings: defaultOpaySettings,
   });
 });
 
@@ -123,6 +124,7 @@ async function renderDashboard(req, res, page = 'services') {
 
 router.get('/dashboard', ensureAuthenticated, (req, res) => renderDashboard(req, res, 'services'));
 router.get('/dashboard/services', ensureAuthenticated, (req, res) => renderDashboard(req, res, 'services'));
+router.get('/dashboard/boost', ensureAuthenticated, (req, res) => renderDashboard(req, res, 'boost'));
 router.get('/dashboard/numbers', ensureAuthenticated, (req, res) => renderDashboard(req, res, 'active'));
 router.get('/dashboard/purchases', ensureAuthenticated, (req, res) => renderDashboard(req, res, 'purchases'));
 router.get('/dashboard/profile', ensureAuthenticated, (req, res) => renderDashboard(req, res, 'profile'));
